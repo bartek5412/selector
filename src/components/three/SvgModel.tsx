@@ -11,6 +11,11 @@ interface SvgModelProps {
   depth: number;
   color: string;
   secondColor: string;
+  x: number;
+  y: number;
+  rodThickness: number;
+  rodOffset: number;
+  showRods: boolean;
 }
 
 export default function SvgModel({
@@ -18,6 +23,11 @@ export default function SvgModel({
   depth,
   color,
   secondColor,
+  x,
+  y,
+  rodThickness,
+  rodOffset,
+  showRods,
 }: SvgModelProps) {
   const shapes = useMemo(() => {
     const loader = new SVGLoader();
@@ -52,7 +62,7 @@ export default function SvgModel({
       const scaleFactor = targetWidth / originalSize.x;
 
       // 4. Skalujemy geometrię, zachowując proporcje
- geom.scale(scaleFactor, scaleFactor, 0.03);
+      geom.scale(scaleFactor, scaleFactor, 0.03);
     }
     // --- KONIEC ZMIANY ---
 
@@ -70,13 +80,67 @@ export default function SvgModel({
     [color, secondColor]
   );
 
+  const svgDimensions = useMemo(() => {
+    geometry.computeBoundingBox();
+    const box = geometry.boundingBox;
+    if (box) {
+      return {
+        width: box.max.x - box.min.x,
+        height: box.max.y - box.min.y,
+      };
+    }
+    return { width: 0, height: 0 };
+  }, [geometry]);
+
   return (
-    <mesh
-      geometry={geometry}
-      material={materials}
-      // Usuwamy ekstremalnie małą skalę z mesha
-      // Możemy zostawić obrót, jeśli jest potrzebny
-      rotation={[-0.25, -1, 0.1]}
-    ></mesh>
+    <group scale={[x, y, 1]}>
+      <mesh
+        geometry={geometry}
+        material={materials}
+        scale={[x, y, 1]}
+        // Usuwamy ekstremalnie małą skalę z mesha
+        // Możemy zostawić obrót, jeśli jest potrzebny
+        rotation={[0, 0, Math.PI]}
+      ></mesh>
+      {/* Pręty */}
+      {svgDimensions.width > 0 && showRods && (
+        <>
+          <mesh
+            // Pozycja pręta: z tyłu SVG - górny pręt
+            position={[0, 0.1, -depth / 14]}
+          >
+            <boxGeometry
+              args={[
+                svgDimensions.width * 1.05 * x, // Szerokość pręta (trochę szerszy niż SVG)
+                0.05, // Wysokość (grubość) pręta
+                0.05, // Głębokość pręta
+              ]}
+            />
+            <meshStandardMaterial
+              color="#444444"
+              metalness={0.8}
+              roughness={0.3}
+            />
+          </mesh>
+          <mesh
+            // Pozycja pręta: z tyłu SVG - dolny pręt
+            position={[0, -0.4, -depth / 14]}
+          >
+            <boxGeometry
+              args={[
+                svgDimensions.width * 1.05 * x, // Szerokość pręta (trochę szerszy niż SVG)
+                0.05, // Wysokość (grubość) pręta
+                0.05, // Głębokość pręta
+              ]}
+            />
+            <meshStandardMaterial
+              color="#444444"
+              metalness={0.8}
+              roughness={0.3}
+            />
+          </mesh>
+        </>
+      )}
+    </group>
   );
 }

@@ -192,7 +192,7 @@ export default function LetterPage() {
             <Button
               onClick={handleUploadClick}
               className="w-full"
-              disabled={true}
+              disabled={false}
             >
               Wgraj własne SVG
             </Button>

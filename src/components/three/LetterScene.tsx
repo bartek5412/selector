@@ -82,6 +82,11 @@ export default function Scene3D({
               depth={depth}
               color={color}
               secondColor={secondColor}
+              x={x}
+              y={y}
+              rodThickness={rodThickness}
+              rodOffset={rodOffset}
+              showRods={showRods}
             />
           ) : (
             // W przeciwnym razie, renderuj standardowy model z tekstu
