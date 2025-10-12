@@ -7,7 +7,6 @@ import { TextGeometry } from "three-stdlib";
 // @ts-ignore
 import { FontLoader } from "three-stdlib";
 import helvetiker from "three/examples/fonts/helvetiker_regular.typeface.json";
-import { useTexture } from "@react-three/drei";
 interface TextModelProps {
   text: string;
   depth: number;
@@ -32,7 +31,8 @@ export default function TextModel({
   showRods,
 }: TextModelProps) {
   // Ładujemy czcionkę za pomocą useMemo, by nie przeładowywać jej na każdym renderze
-  const font = useMemo(() => new FontLoader().parse(helvetiker as any), []);
+  // @ts-expect-error - helvetiker json structure matches FontData but types are not fully compatible
+  const font = useMemo(() => new FontLoader().parse(helvetiker), []);
   const material = useMemo(
     () => [
       new THREE.MeshStandardMaterial({
@@ -44,7 +44,6 @@ export default function TextModel({
     ],
     [color, secondColor]
   );
-  const texture = useTexture("/wood.jpg");
   // Używamy useMemo, aby uniknąć ponownego tworzenia geometrii przy każdym re-renderze,
   // jeśli tekst lub jego głębokość się nie zmieniły.
   const geometry = useMemo(() => {
@@ -57,7 +56,7 @@ export default function TextModel({
       bevelThickness: 0.03,
       bevelSize: 0.02,
       bevelOffset: 0,
-      // @ts-ignore - for three-stdlib TextGeometry, bevelSegments is allowed
+      // @ts-expect-error - for three-stdlib TextGeometry, bevelSegments is allowed
       bevelSegments: 0,
     });
   }, [text, depth, font]);

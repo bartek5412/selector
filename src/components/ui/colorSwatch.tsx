@@ -6,10 +6,9 @@ import { cn } from "@/lib/utils";
 import { Check } from "lucide-react";
 import {
   Tooltip,
-  TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip"; // <-- Importujemy komponenty Tooltip
+} from "@/components/ui/tooltip";
 
 // Definicja typu dla naszych nowych danych
 export type ColorData = {

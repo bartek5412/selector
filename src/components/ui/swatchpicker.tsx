@@ -17,13 +17,13 @@ export type SwatchItem = {
   id: string | number;
   name: string;
   preview: string; // Może to być kod HEX (#...) lub ścieżka do obrazka (/...)
-  value: any; // Pełna wartość do zwrócenia po kliknięciu
+  value: SwatchItem; // Pełna wartość do zwrócenia po kliknięciu
 };
 
 interface SwatchPickerProps {
   items: SwatchItem[];
-  selectedValue: any;
-  onSelect: (value: any) => void;
+  selectedValue: SwatchItem | null;
+  onSelect: (value: SwatchItem) => void;
 }
 
 export default function SwatchPicker({
