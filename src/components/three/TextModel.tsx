@@ -2,10 +2,7 @@
 
 import * as THREE from "three";
 import { useMemo } from "react";
-// @ts-ignore
-import { TextGeometry } from "three-stdlib";
-// @ts-ignore
-import { FontLoader } from "three-stdlib";
+import { TextGeometry, FontLoader } from "three-stdlib";
 import helvetiker from "three/examples/fonts/helvetiker_regular.typeface.json";
 interface TextModelProps {
   text: string;
