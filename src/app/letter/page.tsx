@@ -42,8 +42,6 @@ export default function LetterPage() {
   const [depth, setDepth] = useState(0.5);
   const [color, setColor] = useState(definedColor[0].value);
   const [secondColor, setSecondColor] = useState("#000000");
-  const [x, setX] = useState(1);
-  const [y, setY] = useState(1);
   const [showDark, setShowDark] = useState(false);
   const rodOffset = -depth - 0.05;
   const [showRods, setShowRods] = useState(true);
@@ -78,20 +76,7 @@ export default function LetterPage() {
     // Kliknięcie przycisku symuluje kliknięcie na ukryty input
     fileInputRef.current?.click();
   };
-  const handleXChange = (value: number) => {
-    setX(value);
-  };
-  const handleYChange = (value: number) => {
-    setY(value);
-  };
-
-  const handleDepthChange = (value: number) => {
-    // Zabezpieczenie przed wpisaniem wartości spoza zakresu lub nie-liczby
-    if (!isNaN(value) && value >= 0.1 && value <= 2) {
-      setDepth(value);
-    }
-  };
-
+  
   return (
     <main className="flex h-screen w-screen flex-col lg:flex-row">
       {/* Panel kontrolny */}
@@ -393,45 +378,7 @@ export default function LetterPage() {
             {/* Ustawienia */}
             <div>
               <h3 className="text-lg font-semibold mb-4">Ustawienia</h3>
-              <div className="space-y-6">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-sm font-medium mb-2 block">
-                      Skalowanie X
-                    </Label>
-                    <div className="space-y-2">
-                      <Slider
-                        min={0}
-                        max={2}
-                        step={0.01}
-                        value={[x]}
-                        onValueChange={(value) => handleXChange(value[0])}
-                      />
-                      <span className="text-sm text-gray-500">
-                        {x.toFixed(2)}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label className="text-sm font-medium mb-2 block">
-                      Skalowanie Y
-                    </Label>
-                    <div className="space-y-2">
-                      <Slider
-                        min={0}
-                        max={2}
-                        step={0.01}
-                        value={[y]}
-                        onValueChange={(value) => handleYChange(value[0])}
-                      />
-                      <span className="text-sm text-gray-500">
-                        {y.toFixed(2)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
+              <div className="space-y-6 mb-12">
                 <div>
                   <Label className="text-sm font-medium mb-3 block">
                     Opcje wyświetlania
@@ -461,33 +408,6 @@ export default function LetterPage() {
                   </div>
                 </div>
 
-                <div>
-                  <Label className="text-sm font-medium mb-3 block">
-                    Kolory
-                  </Label>
-                  <div className="space-y-4">
-                    <div>
-                      <span className="text-sm text-gray-600 mb-2 block">
-                        Kolor frontu
-                      </span>
-                      <ColorSwatch
-                        colors={definedColor as unknown as ColorData[]}
-                        selectedColor={color}
-                        onSelect={setColor}
-                      />
-                    </div>
-                    <div>
-                      <span className="text-sm text-gray-600 mb-2 block">
-                        Kolor taśmy
-                      </span>
-                      <ColorSwatch
-                        colors={definedColor2 as unknown as ColorData[]}
-                        selectedColor={secondColor}
-                        onSelect={setSecondColor}
-                      />
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
@@ -500,8 +420,8 @@ export default function LetterPage() {
           text={text}
           depth={depth}
           color={color}
-          x={x}
-          y={y}
+          x={1}
+          y={1}
           rodThickness={rodThickness}
           rodOffset={rodOffset}
           secondColor={secondColor}

@@ -1,0 +1,18 @@
+# docker-compose.yml
+
+version: '3.8'
+services:
+  db:
+    image: postgres:15-alpine # Używamy oficjalnego, lekkiego obrazu PostgreSQL
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=myapp
+    ports:
+      - '5432:5432' # Mapujemy port bazy danych na Twój localhost
+    volumes:
+      - postgres_data:/var/lib/postgresql/data # Zapewnia, że dane nie znikną po restarcie
+
+volumes:
+  postgres_data:
