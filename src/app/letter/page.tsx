@@ -35,7 +35,7 @@ import {
 
 export default function LetterPage() {
   // Stan przechowujący tekst do wygenerowania
-  const [text, setText] = useState("sample");
+  const [text, setText] = useState("Sample");
   const rodThickness = 0.1;
   const [showGlow, setShowGlow] = useState(false);
   // Stan przechowujący głębokość (grubość) liter
@@ -54,7 +54,7 @@ export default function LetterPage() {
   const [fontType, setFontType] = useState("text");
   const [frontLetter, setFrontLetter] = useState("standard");
   const [backLetter, setBackLetter] = useState("flat");
-  const [frontLetterAdd, setFrontLetterAdd] = useState("none");
+  const [frontLetterAdd, setFrontLetterAdd] = useState("standard");
   const [tapeDepth, setTapeDepth] = useState("medium");
   const [tapeModel, setTapeModel] = useState("led-strip");
   const [tapeColor, setTapeColor] = useState("white");
@@ -95,7 +95,7 @@ export default function LetterPage() {
   return (
     <main className="flex h-screen w-screen flex-col lg:flex-row">
       {/* Panel kontrolny */}
-      <div className="w-full lg:w-2/6 h-full bg-white px-6 overflow-y-auto dark:bg-gray-900">
+      <div className="w-full lg:w-2/6 h-full bg-white mt-10 px-6 overflow-y-auto dark:bg-gray-900">
         <ScrollArea className="h-full">
           <div className="p-6 space-y-8">
             {/* Tekst */}
