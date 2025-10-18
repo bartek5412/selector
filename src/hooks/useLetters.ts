@@ -8,8 +8,19 @@ export type Letter = {
   wysokosc: number;
 };
 
+export type LetterSettings = {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  elementType: string;
+  elementValue: string;
+  margin: number;
+  unit: string;
+};
+
 export function useLetters() {
-  const [data, setData] = useState<Letter[]>([]);
+  const [data, setData] = useState<LetterSettings[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -39,7 +50,7 @@ export function useLetters() {
   };
 
   // Zapisywanie zmian
-  const updateLetter = async (id: string, changes: Partial<Letter>) => {
+  const updateLetter = async (id: string, changes: Partial<LetterSettings>) => {
     try {
       const response = await fetch(`/api/letter/${id}`, {
         method: "PUT",
@@ -55,12 +66,8 @@ export function useLetters() {
 
       const updatedLetter = await response.json();
 
-      // Aktualizuj lokalne dane
-      setData((prevData) =>
-        prevData.map((letter) =>
-          letter.id === id ? { ...letter, ...changes } : letter
-        )
-      );
+      // Odśwież dane z serwera
+      await fetchData();
 
       return updatedLetter;
     } catch (err) {
@@ -89,7 +96,7 @@ export function useLetters() {
   };
 
   // Dodawanie nowego rekordu
-  const addLetter = async (letterData: Omit<Letter, "id">) => {
+  const addLetter = async (letterData: Omit<LetterSettings, "id">) => {
     try {
       const response = await fetch("/api/letter", {
         method: "POST",
@@ -104,7 +111,8 @@ export function useLetters() {
       }
 
       const newLetter = await response.json();
-      setData((prevData) => [...prevData, newLetter]);
+      // Odśwież dane z serwera
+      await fetchData();
       return newLetter;
     } catch (err) {
       console.error("Error adding letter:", err);

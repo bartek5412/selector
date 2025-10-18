@@ -10,13 +10,16 @@ export async function PUT(
     const { id } = params;
     const data = await request.json();
 
-    const updatedFrame = await prisma.smartFrame.update({
+    const updatedFrame = await prisma.letter.update({
       where: { id },
       data: {
-        kolorRamy: data.kolorRamy,
-        kolorSzkla: data.kolorSzkla,
-        szerokosc: data.szerokosc,
-        wysokosc: data.wysokosc,
+        name: data.name,
+        description: data.description,
+        price: data.price,
+        elementType: data.elementType,
+        elementValue: data.elementValue,
+        margin: data.margin,
+        unit: data.unit,
       },
     });
 
@@ -38,7 +41,7 @@ export async function DELETE(
   try {
     const { id } = params;
 
-    await prisma.smartFrame.delete({
+    await prisma.letter.delete({
       where: { id },
     });
 

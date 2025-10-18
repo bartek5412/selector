@@ -8,8 +8,8 @@ import { prisma } from '@/lib/prisma'; // <-- WAŻNY IMPORT! Zamiast @prisma/cli
 // Funkcja do pobierania wszystkich zapisanych ram (GET)
 export async function GET() {
   try {
-    const frames = await prisma.smartFrame.findMany(); // Używamy naszej globalnej instancji
-    return NextResponse.json(frames);
+    const letter = await prisma.letter.findMany(); // Używamy naszej globalnej instancji
+    return NextResponse.json(letter);
   } catch (error) {
     console.error('Błąd API:', error);
     return NextResponse.json({ message: 'Wystąpił błąd serwera' }, { status: 500 });
@@ -22,12 +22,15 @@ export async function GET() {
 export async function POST(request: Request) {
   const data = await request.json(); // Pobieramy dane z frontendu
 
-  const newFrame = await prisma.smartFrame.create({
+  const newFrame = await prisma.letter.create({
     data: {
-      kolorRamy: data.kolorRamy,
-      kolorSzkla: data.kolorSzkla,
-      szerokosc: data.szerokosc,
-      wysokosc: data.wysokosc,
+      name: data.name,
+      description: data.description,
+      price: data.price,
+      elementType: data.elementType,
+      elementValue: data.elementValue,
+      margin: data.margin,
+      unit: data.unit,
     },
   });
 

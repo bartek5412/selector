@@ -22,3 +22,15 @@ model SmartFrame {
   wysokosc    Float
 //  createdAt   DateTime  @default(now())
 }
+model Letter {
+    id          String    @id @default(cuid())
+    name String
+    description String
+    price Float
+    elementType String
+    elementValue String?
+    margin Float?
+    unit String?
+  //  createdAt DateTime @default(now())
+  //  updatedAt DateTime @updatedAt
+}
