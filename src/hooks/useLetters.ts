@@ -119,7 +119,25 @@ export function useLetters() {
       throw new Error("Wystąpił błąd podczas dodawania rekordu");
     }
   };
+  const filterLetters = async (elementType: string) => {
+    try {
+      const response = await fetch(`/api/letter?elementType=${elementType}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const letters = await response.json();
+      setData(letters);
+    } catch (err) {
+      console.error("Error filtering letters:", err);
+      throw new Error("Wystąpił błąd podczas filtrowania danych");
+    }
+  };
 
+  // Pobieranie unikalnych typów elementów
+  const getUniqueElementTypes = () => {
+    const types = data.map((letter) => letter.elementType);
+    return [...new Set(types)].filter((type) => type && type.trim() !== "");
+  };
   useEffect(() => {
     fetchData();
   }, []);
@@ -130,7 +148,9 @@ export function useLetters() {
     error,
     updateLetter,
     deleteLetter,
+    filterLetters,
     addLetter,
+    getUniqueElementTypes,
     refetch: fetchData,
   };
 }

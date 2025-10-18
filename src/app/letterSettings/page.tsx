@@ -10,10 +10,20 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default function LetterSettingsPage() {
-  const { data, loading, error, updateLetter, deleteLetter, addLetter } =
-    useLetters();
+  const {
+    data,
+    loading,
+    error,
+    filterLetters,
+    updateLetter,
+    deleteLetter,
+    addLetter,
+    getUniqueElementTypes,
+    refetch,
+  } = useLetters();
   const [newLetter, setNewLetter] = useState<LetterSettings>({
     id: "",
     name: "",
@@ -24,6 +34,32 @@ export default function LetterSettingsPage() {
     margin: 0,
     unit: "",
   });
+  const [selectedFilter, setSelectedFilter] = useState<string>("");
+
+  // Obsługa filtrowania
+  const handleFilter = async (elementType: string) => {
+    try {
+      if (elementType === "") {
+        await refetch(); // Pobierz wszystkie dane
+      } else {
+        await filterLetters(elementType);
+      }
+      setSelectedFilter(elementType);
+    } catch (err) {
+      alert("Wystąpił błąd podczas filtrowania danych");
+    }
+  };
+
+  // Resetowanie filtra
+  const handleResetFilter = async () => {
+    try {
+      await refetch();
+      setSelectedFilter("");
+    } catch (err) {
+      alert("Wystąpił błąd podczas resetowania filtra");
+    }
+  };
+
   // Obsługa zapisywania z alertami
   const handleSave = async (id: string, changes: any) => {
     try {
@@ -94,16 +130,53 @@ export default function LetterSettingsPage() {
 
         {!loading && !error && (
           <>
+            {/* Interfejs filtrowania */}
+            <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+              <h3 className="text-lg font-semibold mb-3">
+                Filtruj po typie elementu
+              </h3>
+              <div className="flex gap-4 items-center">
+                <select
+                  value={selectedFilter}
+                  onChange={(e) => handleFilter(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Wszystkie typy</option>
+                  {getUniqueElementTypes().map((type) => (
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
+                  ))}
+                </select>
+                <Button
+                  onClick={handleResetFilter}
+                  variant="outline"
+                  className="px-4 py-2"
+                >
+                  Resetuj filtr
+                </Button>
+              </div>
+              {selectedFilter && (
+                <p className="mt-2 text-sm text-gray-600">
+                  Wyświetlane są tylko elementy typu:{" "}
+                  <strong>{selectedFilter}</strong>
+                </p>
+              )}
+            </div>
+
             <div className="mb-4 text-sm text-gray-600">
               Znaleziono {data.length} rekordów
             </div>
-            <DataTable
-              columns={columns as ColumnDef<any>[]}
-              data={data as any[]}
-            />
+            <ScrollArea className="h-[250px]">
+              <DataTable
+                columns={columns as ColumnDef<any>[]}
+                data={data as any[]}
+              />
+            </ScrollArea>
           </>
         )}
       </main>
+
       <div className="container mx-auto mt-5 py-5">
         <h1 className="mb-6 text-3xl font-bold">Dodaj nowy parametr</h1>
         <div className=""></div>

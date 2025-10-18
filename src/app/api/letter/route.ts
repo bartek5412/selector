@@ -2,17 +2,29 @@
 
 // src/app/api/letter/route.ts
 
-import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma'; // <-- WAŻNY IMPORT! Zamiast @prisma/client
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma"; // <-- WAŻNY IMPORT! Zamiast @prisma/client
 
 // Funkcja do pobierania wszystkich zapisanych ram (GET)
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const letter = await prisma.letter.findMany(); // Używamy naszej globalnej instancji
+    const { searchParams } = new URL(request.url);
+    const elementType = searchParams.get("elementType");
+
+    // Jeśli podano elementType, filtruj po tym polu
+    const whereClause = elementType ? { elementType } : {};
+
+    const letter = await prisma.letter.findMany({
+      where: whereClause,
+    });
+
     return NextResponse.json(letter);
   } catch (error) {
-    console.error('Błąd API:', error);
-    return NextResponse.json({ message: 'Wystąpił błąd serwera' }, { status: 500 });
+    console.error("Błąd API:", error);
+    return NextResponse.json(
+      { message: "Wystąpił błąd serwera" },
+      { status: 500 }
+    );
   }
 }
 
