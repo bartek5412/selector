@@ -42,7 +42,8 @@ export default function LetterPage() {
     getOptionsByElementType("backLetterOptions")[0]?.elementValue || "flat"
   );
   const [frontLetterAdd, setFrontLetterAdd] = useState(
-    getOptionsByElementType("frontLetterAdditionalOptions")[0]?.elementValue || "standard"
+    getOptionsByElementType("frontLetterAdditionalOptions")[0]?.elementValue ||
+      "standard"
   );
   const [tapeDepth, setTapeDepth] = useState(
     getOptionsByElementType("tapeDepthOptions")[0]?.elementValue || "medium"
@@ -63,7 +64,8 @@ export default function LetterPage() {
     getOptionsByElementType("mountingOptions")[0]?.elementValue || "screws"
   );
   const [substructure, setSubstructure] = useState(
-    getOptionsByElementType("substructureOptions")[0]?.elementValue || "aluminum"
+    getOptionsByElementType("substructureOptions")[0]?.elementValue ||
+      "aluminum"
   );
   const [dimmer, setDimmer] = useState(
     getOptionsByElementType("dimmerOptions")[0]?.elementValue || "none"
@@ -78,27 +80,39 @@ export default function LetterPage() {
     if (!loading && data.length > 0) {
       const frontLetterOptions = getOptionsByElementType("frontLetterOptions");
       const backLetterOptions = getOptionsByElementType("backLetterOptions");
-      const frontLetterAdditionalOptions = getOptionsByElementType("frontLetterAdditionalOptions");
+      const frontLetterAdditionalOptions = getOptionsByElementType(
+        "frontLetterAdditionalOptions"
+      );
       const tapeDepthOptions = getOptionsByElementType("tapeDepthOptions");
       const tapeModelOptions = getOptionsByElementType("tapeModelOptions");
       const tapeColorOptions = getOptionsByElementType("tapeColorOptions");
       const lightingOptions = getOptionsByElementType("lightingOptions");
       const mountingOptions = getOptionsByElementType("mountingOptions");
-      const substructureOptions = getOptionsByElementType("substructureOptions");
+      const substructureOptions = getOptionsByElementType(
+        "substructureOptions"
+      );
       const dimmerOptions = getOptionsByElementType("dimmerOptions");
 
-      if (frontLetterOptions.length > 0) setFrontLetter(frontLetterOptions[0].elementValue);
-      if (backLetterOptions.length > 0) setBackLetter(backLetterOptions[0].elementValue);
-      if (frontLetterAdditionalOptions.length > 0) setFrontLetterAdd(frontLetterAdditionalOptions[0].elementValue);
-      if (tapeDepthOptions.length > 0) setTapeDepth(tapeDepthOptions[0].elementValue);
-      if (tapeModelOptions.length > 0) setTapeModel(tapeModelOptions[0].elementValue);
+      if (frontLetterOptions.length > 0)
+        setFrontLetter(frontLetterOptions[0].elementValue);
+      if (backLetterOptions.length > 0)
+        setBackLetter(backLetterOptions[0].elementValue);
+      if (frontLetterAdditionalOptions.length > 0)
+        setFrontLetterAdd(frontLetterAdditionalOptions[0].elementValue);
+      if (tapeDepthOptions.length > 0)
+        setTapeDepth(tapeDepthOptions[0].elementValue);
+      if (tapeModelOptions.length > 0)
+        setTapeModel(tapeModelOptions[0].elementValue);
       if (tapeColorOptions.length > 0) {
         setTapeColor(tapeColorOptions[0].elementValue);
         setTapeColor2(tapeColorOptions[0].elementValue);
       }
-      if (lightingOptions.length > 0) setLighting(lightingOptions[0].elementValue);
-      if (mountingOptions.length > 0) setMounting(mountingOptions[0].elementValue);
-      if (substructureOptions.length > 0) setSubstructure(substructureOptions[0].elementValue);
+      if (lightingOptions.length > 0)
+        setLighting(lightingOptions[0].elementValue);
+      if (mountingOptions.length > 0)
+        setMounting(mountingOptions[0].elementValue);
+      if (substructureOptions.length > 0)
+        setSubstructure(substructureOptions[0].elementValue);
       if (dimmerOptions.length > 0) setDimmer(dimmerOptions[0].elementValue);
     }
   }, [loading, data, getOptionsByElementType]);
