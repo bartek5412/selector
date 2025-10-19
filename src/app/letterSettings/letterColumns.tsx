@@ -91,6 +91,10 @@ export const createEditableColumns = (
   };
 
   return [
+    columnHelper.accessor("id", {
+      header: "ID",
+      cell: (cell) => <div>{cell.getValue()}</div>,
+    }),
     columnHelper.accessor("name", {
       header: "Nazwa",
       cell: ({ getValue, row }) => (

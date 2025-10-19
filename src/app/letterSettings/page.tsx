@@ -11,6 +11,13 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "@/components/ui/select";
+import { SelectTrigger } from "@/components/ui/select";
 
 export default function LetterSettingsPage() {
   const {
@@ -26,13 +33,13 @@ export default function LetterSettingsPage() {
   } = useLetters();
   const [newLetter, setNewLetter] = useState<LetterSettings>({
     id: "",
-    name: "",
-    description: "",
+    name: "Test",
+    description: "Test",
     price: 0,
-    elementType: "",
-    elementValue: "",
+    elementType: "Test",
+    elementValue: "Test",
     margin: 0,
-    unit: "",
+    unit: "Test",
   });
   const [selectedFilter, setSelectedFilter] = useState<string>("");
 
@@ -243,7 +250,55 @@ export default function LetterSettingsPage() {
               >
                 Typ elementu
               </label>
-              <input
+              <Select
+                value={newLetter.elementType}
+                onValueChange={(value) =>
+                  setNewLetter({ ...newLetter, elementType: value })
+                }
+              >
+                <SelectTrigger className="p-2 mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                  <SelectValue placeholder="Wybierz typ elementu" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem key="fontTypeOptions" value="fontTypeOptions">
+                    fontTypeOptions
+                  </SelectItem>
+                  <SelectItem
+                    key="frontLetterOptions"
+                    value="frontLetterOptions"
+                  >
+                    frontLetterOptions
+                  </SelectItem>
+                  <SelectItem key="backLetterOptions" value="backLetterOptions">
+                    backLetterOptions
+                  </SelectItem>
+                  <SelectItem
+                    key="frontLetterAdditionalOptions"
+                    value="frontLetterAdditionalOptions"
+                  >
+                    frontLetterAdditionalOptions
+                  </SelectItem>
+                  <SelectItem key="tapeDepthOptions" value="tapeDepthOptions">
+                    tapeDepthOptions
+                  </SelectItem>
+                  <SelectItem key="tapeModelOptions" value="tapeModelOptions">
+                    tapeModelOptions
+                  </SelectItem>
+                  <SelectItem key="tapeColorOptions" value="tapeColorOptions">
+                    tapeColorOptions
+                  </SelectItem>
+                  <SelectItem key="tapeWidthOptions" value="tapeWidthOptions">
+                    tapeWidthOptions
+                  </SelectItem>
+                  <SelectItem key="tapeHeightOptions" value="tapeHeightOptions">
+                    tapeHeightOptions
+                  </SelectItem>
+                  <SelectItem key="tapeLengthOptions" value="tapeLengthOptions">
+                    tapeLengthOptions
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              {/* <input
                 type="text"
                 id="elementType"
                 value={newLetter.elementType}
@@ -251,7 +306,7 @@ export default function LetterSettingsPage() {
                   setNewLetter({ ...newLetter, elementType: e.target.value })
                 }
                 className="p-2 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-              />
+              /> */}
             </div>
             <div className="mb-4">
               <label
