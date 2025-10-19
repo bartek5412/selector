@@ -4,10 +4,10 @@ import { prisma } from "@/lib/prisma";
 // Funkcja do aktualizacji ramki (PUT)
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const data = await request.json();
 
     const updatedFrame = await prisma.letter.update({
@@ -36,10 +36,10 @@ export async function PUT(
 // Funkcja do usuwania ramki (DELETE)
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     await prisma.letter.delete({
       where: { id },
