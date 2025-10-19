@@ -1,6 +1,6 @@
 "use client"; // Potrzebujemy interaktywności, więc to musi być komponent kliencki
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import Scene3D from "@/components/three/LetterScene";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,7 +19,104 @@ import { useLetters } from "@/hooks/useLetters";
 
 export default function LetterPage() {
   // Hook do pobierania danych z bazy
-  const { getOptionsByElementType, loading, error } = useLetters();
+  const { data, getOptionsByElementType, loading, error } = useLetters();
+
+  // Stan przechowujący tekst do wygenerowania
+  const [text, setText] = useState("Sample");
+  const [showGlow, setShowGlow] = useState(false);
+  // Stan przechowujący głębokość (grubość) liter
+  const [depth] = useState(0.5);
+  const [color] = useState(definedColor[0].value);
+  const [secondColor] = useState("#000000");
+  const [showDark, setShowDark] = useState(false);
+  const [showRods, setShowRods] = useState(true);
+  const [svgData, setSvgData] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Stany dla selectów - domyślne wartości z bazy danych
+  // const [fontType] = useState("text");
+  const [frontLetter, setFrontLetter] = useState(
+    getOptionsByElementType("frontLetterOptions")[0]?.elementValue || "standard"
+  );
+  const [backLetter, setBackLetter] = useState(
+    getOptionsByElementType("backLetterOptions")[0]?.elementValue || "flat"
+  );
+  const [frontLetterAdd, setFrontLetterAdd] = useState(
+    getOptionsByElementType("frontLetterAdditionalOptions")[0]?.elementValue || "standard"
+  );
+  const [tapeDepth, setTapeDepth] = useState(
+    getOptionsByElementType("tapeDepthOptions")[0]?.elementValue || "medium"
+  );
+  const [tapeModel, setTapeModel] = useState(
+    getOptionsByElementType("tapeModelOptions")[0]?.elementValue || "led-strip"
+  );
+  const [tapeColor, setTapeColor] = useState(
+    getOptionsByElementType("tapeColorOptions")[0]?.elementValue || "white"
+  );
+  const [tapeColor2, setTapeColor2] = useState(
+    getOptionsByElementType("tapeColorOptions")[0]?.elementValue || "white"
+  );
+  const [lighting, setLighting] = useState(
+    getOptionsByElementType("lightingOptions")[0]?.elementValue || "static"
+  );
+  const [mounting, setMounting] = useState(
+    getOptionsByElementType("mountingOptions")[0]?.elementValue || "screws"
+  );
+  const [substructure, setSubstructure] = useState(
+    getOptionsByElementType("substructureOptions")[0]?.elementValue || "aluminum"
+  );
+  const [dimmer, setDimmer] = useState(
+    getOptionsByElementType("dimmerOptions")[0]?.elementValue || "none"
+  );
+
+  // Obliczane wartości
+  const rodThickness = 0.1;
+  const rodOffset = -depth - 0.05;
+
+  // Aktualizuj domyślne wartości gdy dane się załadują
+  useEffect(() => {
+    if (!loading && data.length > 0) {
+      const frontLetterOptions = getOptionsByElementType("frontLetterOptions");
+      const backLetterOptions = getOptionsByElementType("backLetterOptions");
+      const frontLetterAdditionalOptions = getOptionsByElementType("frontLetterAdditionalOptions");
+      const tapeDepthOptions = getOptionsByElementType("tapeDepthOptions");
+      const tapeModelOptions = getOptionsByElementType("tapeModelOptions");
+      const tapeColorOptions = getOptionsByElementType("tapeColorOptions");
+      const lightingOptions = getOptionsByElementType("lightingOptions");
+      const mountingOptions = getOptionsByElementType("mountingOptions");
+      const substructureOptions = getOptionsByElementType("substructureOptions");
+      const dimmerOptions = getOptionsByElementType("dimmerOptions");
+
+      if (frontLetterOptions.length > 0) setFrontLetter(frontLetterOptions[0].elementValue);
+      if (backLetterOptions.length > 0) setBackLetter(backLetterOptions[0].elementValue);
+      if (frontLetterAdditionalOptions.length > 0) setFrontLetterAdd(frontLetterAdditionalOptions[0].elementValue);
+      if (tapeDepthOptions.length > 0) setTapeDepth(tapeDepthOptions[0].elementValue);
+      if (tapeModelOptions.length > 0) setTapeModel(tapeModelOptions[0].elementValue);
+      if (tapeColorOptions.length > 0) {
+        setTapeColor(tapeColorOptions[0].elementValue);
+        setTapeColor2(tapeColorOptions[0].elementValue);
+      }
+      if (lightingOptions.length > 0) setLighting(lightingOptions[0].elementValue);
+      if (mountingOptions.length > 0) setMounting(mountingOptions[0].elementValue);
+      if (substructureOptions.length > 0) setSubstructure(substructureOptions[0].elementValue);
+      if (dimmerOptions.length > 0) setDimmer(dimmerOptions[0].elementValue);
+    }
+  }, [loading, data, getOptionsByElementType]);
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = e.target?.result as string;
+      setSvgData(text); // Zapisujemy zawartość pliku SVG do stanu
+    };
+    reader.readAsText(file);
+  };
+
+  const handleUploadClick = () => {
+    // Kliknięcie przycisku symuluje kliknięcie na ukryty input
+    fileInputRef.current?.click();
+  };
 
   // Loading state
   if (loading) {
@@ -38,49 +135,6 @@ export default function LetterPage() {
       </div>
     );
   }
-
-  // Stan przechowujący tekst do wygenerowania
-  const [text, setText] = useState("Sample");
-  const rodThickness = 0.1;
-  const [showGlow, setShowGlow] = useState(false);
-  // Stan przechowujący głębokość (grubość) liter
-  const [depth] = useState(0.5);
-  const [color] = useState(definedColor[0].value);
-  const [secondColor] = useState("#000000");
-  const [showDark, setShowDark] = useState(false);
-  const rodOffset = -depth - 0.05;
-  const [showRods, setShowRods] = useState(true);
-  const [svgData, setSvgData] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Stany dla selectów
-  // const [fontType] = useState("text");
-  const [frontLetter, setFrontLetter] = useState("standard");
-  const [backLetter, setBackLetter] = useState("flat");
-  const [frontLetterAdd, setFrontLetterAdd] = useState("standard");
-  const [tapeDepth, setTapeDepth] = useState("medium");
-  const [tapeModel, setTapeModel] = useState("led-strip");
-  const [tapeColor, setTapeColor] = useState("white");
-  const [tapeColor2, setTapeColor2] = useState("white");
-  const [lighting, setLighting] = useState("static");
-  const [mounting, setMounting] = useState("screws");
-  const [substructure, setSubstructure] = useState("aluminum");
-  const [dimmer, setDimmer] = useState("none");
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const text = e.target?.result as string;
-      setSvgData(text); // Zapisujemy zawartość pliku SVG do stanu
-    };
-    reader.readAsText(file);
-  };
-
-  const handleUploadClick = () => {
-    // Kliknięcie przycisku symuluje kliknięcie na ukryty input
-    fileInputRef.current?.click();
-  };
 
   return (
     <main className="flex h-screen w-screen flex-col lg:flex-row">
@@ -134,11 +188,16 @@ export default function LetterPage() {
                       <SelectValue placeholder="Wybierz typ" />
                     </SelectTrigger>
                     <SelectContent>
-                      {getOptionsByElementType("frontLetterOptions").map((option) => (
-                        <SelectItem key={option.id} value={option.elementValue}>
-                          {option.name}
-                        </SelectItem>
-                      ))}
+                      {getOptionsByElementType("frontLetterOptions").map(
+                        (option) => (
+                          <SelectItem
+                            key={option.id}
+                            value={option.elementValue}
+                          >
+                            {option.name}
+                          </SelectItem>
+                        )
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -152,11 +211,16 @@ export default function LetterPage() {
                       <SelectValue placeholder="Wybierz typ" />
                     </SelectTrigger>
                     <SelectContent>
-                      {getOptionsByElementType("backLetterOptions").map((option) => (
-                        <SelectItem key={option.id} value={option.elementValue}>
-                          {option.name}
-                        </SelectItem>
-                      ))}
+                      {getOptionsByElementType("backLetterOptions").map(
+                        (option) => (
+                          <SelectItem
+                            key={option.id}
+                            value={option.elementValue}
+                          >
+                            {option.name}
+                          </SelectItem>
+                        )
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -173,7 +237,9 @@ export default function LetterPage() {
                       <SelectValue placeholder="Wybierz opcję" />
                     </SelectTrigger>
                     <SelectContent>
-                      {getOptionsByElementType("frontLetterAdditionalOptions").map((option) => (
+                      {getOptionsByElementType(
+                        "frontLetterAdditionalOptions"
+                      ).map((option) => (
                         <SelectItem key={option.id} value={option.elementValue}>
                           {option.name}
                         </SelectItem>
@@ -191,11 +257,16 @@ export default function LetterPage() {
                       <SelectValue placeholder="Wybierz głębokość" />
                     </SelectTrigger>
                     <SelectContent>
-                      {getOptionsByElementType("tapeDepthOptions").map((option) => (
-                        <SelectItem key={option.id} value={option.elementValue}>
-                          {option.name}
-                        </SelectItem>
-                      ))}
+                      {getOptionsByElementType("tapeDepthOptions").map(
+                        (option) => (
+                          <SelectItem
+                            key={option.id}
+                            value={option.elementValue}
+                          >
+                            {option.name}
+                          </SelectItem>
+                        )
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -215,11 +286,16 @@ export default function LetterPage() {
                       <SelectValue placeholder="Wybierz głębokość" />
                     </SelectTrigger>
                     <SelectContent>
-                      {getOptionsByElementType("tapeDepthOptions").map((option) => (
-                        <SelectItem key={option.id} value={option.elementValue}>
-                          {option.name}
-                        </SelectItem>
-                      ))}
+                      {getOptionsByElementType("tapeDepthOptions").map(
+                        (option) => (
+                          <SelectItem
+                            key={option.id}
+                            value={option.elementValue}
+                          >
+                            {option.name}
+                          </SelectItem>
+                        )
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -233,11 +309,16 @@ export default function LetterPage() {
                       <SelectValue placeholder="Wybierz model" />
                     </SelectTrigger>
                     <SelectContent>
-                      {getOptionsByElementType("tapeModelOptions").map((option) => (
-                        <SelectItem key={option.id} value={option.elementValue}>
-                          {option.name}
-                        </SelectItem>
-                      ))}
+                      {getOptionsByElementType("tapeModelOptions").map(
+                        (option) => (
+                          <SelectItem
+                            key={option.id}
+                            value={option.elementValue}
+                          >
+                            {option.name}
+                          </SelectItem>
+                        )
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -251,11 +332,16 @@ export default function LetterPage() {
                       <SelectValue placeholder="Wybierz kolor" />
                     </SelectTrigger>
                     <SelectContent>
-                      {getOptionsByElementType("tapeColorOptions").map((option) => (
-                        <SelectItem key={option.id} value={option.elementValue}>
-                          {option.name}
-                        </SelectItem>
-                      ))}
+                      {getOptionsByElementType("tapeColorOptions").map(
+                        (option) => (
+                          <SelectItem
+                            key={option.id}
+                            value={option.elementValue}
+                          >
+                            {option.name}
+                          </SelectItem>
+                        )
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -269,11 +355,16 @@ export default function LetterPage() {
                       <SelectValue placeholder="Wybierz kolor" />
                     </SelectTrigger>
                     <SelectContent>
-                      {getOptionsByElementType("tapeColorOptions").map((option) => (
-                        <SelectItem key={option.id} value={option.elementValue}>
-                          {option.name}
-                        </SelectItem>
-                      ))}
+                      {getOptionsByElementType("tapeColorOptions").map(
+                        (option) => (
+                          <SelectItem
+                            key={option.id}
+                            value={option.elementValue}
+                          >
+                            {option.name}
+                          </SelectItem>
+                        )
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -287,11 +378,16 @@ export default function LetterPage() {
                       <SelectValue placeholder="Wybierz oświetlenie" />
                     </SelectTrigger>
                     <SelectContent>
-                      {getOptionsByElementType("lightingOptions").map((option) => (
-                        <SelectItem key={option.id} value={option.elementValue}>
-                          {option.name}
-                        </SelectItem>
-                      ))}
+                      {getOptionsByElementType("lightingOptions").map(
+                        (option) => (
+                          <SelectItem
+                            key={option.id}
+                            value={option.elementValue}
+                          >
+                            {option.name}
+                          </SelectItem>
+                        )
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -305,11 +401,16 @@ export default function LetterPage() {
                       <SelectValue placeholder="Wybierz typ" />
                     </SelectTrigger>
                     <SelectContent>
-                      {getOptionsByElementType("dimmerOptions").map((option) => (
-                        <SelectItem key={option.id} value={option.elementValue}>
-                          {option.name}
-                        </SelectItem>
-                      ))}
+                      {getOptionsByElementType("dimmerOptions").map(
+                        (option) => (
+                          <SelectItem
+                            key={option.id}
+                            value={option.elementValue}
+                          >
+                            {option.name}
+                          </SelectItem>
+                        )
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -329,11 +430,16 @@ export default function LetterPage() {
                       <SelectValue placeholder="Wybierz mocowanie" />
                     </SelectTrigger>
                     <SelectContent>
-                      {getOptionsByElementType("mountingOptions").map((option) => (
-                        <SelectItem key={option.id} value={option.elementValue}>
-                          {option.name}
-                        </SelectItem>
-                      ))}
+                      {getOptionsByElementType("mountingOptions").map(
+                        (option) => (
+                          <SelectItem
+                            key={option.id}
+                            value={option.elementValue}
+                          >
+                            {option.name}
+                          </SelectItem>
+                        )
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -347,11 +453,16 @@ export default function LetterPage() {
                       <SelectValue placeholder="Wybierz materiał" />
                     </SelectTrigger>
                     <SelectContent>
-                      {getOptionsByElementType("substructureOptions").map((option) => (
-                        <SelectItem key={option.id} value={option.elementValue}>
-                          {option.name}
-                        </SelectItem>
-                      ))}
+                      {getOptionsByElementType("substructureOptions").map(
+                        (option) => (
+                          <SelectItem
+                            key={option.id}
+                            value={option.elementValue}
+                          >
+                            {option.name}
+                          </SelectItem>
+                        )
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
