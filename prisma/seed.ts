@@ -1,5 +1,5 @@
 // prisma/seed.ts
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "../src/generated/prisma";
 
 const prisma = new PrismaClient();
 
@@ -46,7 +46,8 @@ async function main() {
       elementValue: "premium",
       margin: 15.0,
       unit: "m2",
-    },{
+    },
+    {
       name: "60mm",
       description: "60mm",
       price: 150.0,
@@ -73,7 +74,8 @@ async function main() {
       margin: 15.0,
       unit: "mm",
     },
-    {name: "brak",
+    {
+      name: "brak",
       description: "Brak oświetlenia",
       price: 150.0,
       elementType: "lightingOptions",
@@ -90,14 +92,16 @@ async function main() {
       margin: 15.0,
       unit: "szt",
     },
-    {name: "Dystanse",
+    {
+      name: "Dystanse",
       description: "Dystanse",
       price: 150.0,
       elementType: "substructureOptions",
       elementValue: "premium",
       margin: 15.0,
       unit: "szt",
-    },{
+    },
+    {
       name: "Brak",
       description: "Brak ściemniacza",
       price: 150.0,
@@ -114,7 +118,7 @@ async function main() {
       elementValue: "premium",
       margin: 15.0,
       unit: "szt",
-    }
+    },
   ];
 
   for (const letter of defaultLetters) {
