@@ -13,8 +13,6 @@ interface SvgModelProps {
   secondColor: string;
   x: number;
   y: number;
-  rodThickness: number;
-  rodOffset: number;
   showRods: boolean;
 }
 
@@ -25,8 +23,6 @@ export default function SvgModel({
   secondColor,
   x,
   y,
-  rodThickness,
-  rodOffset,
   showRods,
 }: SvgModelProps) {
   const shapes = useMemo(() => {

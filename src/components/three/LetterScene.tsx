@@ -84,8 +84,6 @@ export default function Scene3D({
               secondColor={secondColor}
               x={x}
               y={y}
-              rodThickness={rodThickness}
-              rodOffset={rodOffset}
               showRods={showRods}
             />
           ) : (
