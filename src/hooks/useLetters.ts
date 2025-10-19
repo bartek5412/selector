@@ -138,6 +138,11 @@ export function useLetters() {
     const types = data.map((letter) => letter.elementType);
     return [...new Set(types)].filter((type) => type && type.trim() !== "");
   };
+
+  // Pobieranie opcji dla konkretnego elementType
+  const getOptionsByElementType = (elementType: string) => {
+    return data.filter((item) => item.elementType === elementType);
+  };
   useEffect(() => {
     fetchData();
   }, []);
@@ -151,6 +156,7 @@ export function useLetters() {
     filterLetters,
     addLetter,
     getUniqueElementTypes,
+    getOptionsByElementType,
     refetch: fetchData,
   };
 }
