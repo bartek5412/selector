@@ -8,6 +8,7 @@ import {
 import { useLetters } from "@/hooks/useLetters";
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -186,52 +187,52 @@ export default function LetterSettingsPage() {
 
       <div className="container mx-auto mt-5 py-5">
         <h1 className="mb-6 text-3xl font-bold">Dodaj nowy parametr</h1>
-        <div className=""></div>
+
         <Card className="p-4 bg-white items-center justify-center">
-          <form onSubmit={handleSubmit} className="flex flex-col-2 gap-4">
-            <div className="mb-4">
+          <form onSubmit={handleSubmit} className="flex flex-wrap gap-4">
+            <div className="flex-1 min-w-0">
               <label
                 htmlFor="name"
                 className="block text-sm font-medium text-gray-700"
               >
                 Nazwa
               </label>
-              <input
+              <Input
                 type="text"
                 id="name"
                 value={newLetter.name}
                 onChange={(e) =>
                   setNewLetter({ ...newLetter, name: e.target.value })
                 }
-                className="p-2 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                placeholder="Wprowadź nazwę"
               />
             </div>
-            <div className="mb-4">
+            <div className="flex-1 min-w-0">
               <label
                 htmlFor="name"
                 className="block text-sm font-medium text-gray-700"
               >
                 Opis
               </label>
-              <input
+              <Input
                 type="text"
                 id="description"
                 value={newLetter.description}
                 onChange={(e) =>
                   setNewLetter({ ...newLetter, description: e.target.value })
                 }
-                className="p-2 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                placeholder="Wprowadź opis"
               />
             </div>
-            <div className="mb-4">
+            <div className="flex-1 min-w-0">
               <label
                 htmlFor="name"
                 className="block text-sm font-medium text-gray-700"
               >
                 Cena
               </label>
-              <input
-                type="text"
+              <Input
+                type="number"
                 id="price"
                 value={newLetter.price}
                 onChange={(e) =>
@@ -240,10 +241,10 @@ export default function LetterSettingsPage() {
                     price: parseFloat(e.target.value),
                   })
                 }
-                className="p-2 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                placeholder="Wprowadź cenę"
               />
             </div>
-            <div className="mb-4">
+            <div className="flex-1 min-w-0">
               <label
                 htmlFor="name"
                 className="block text-sm font-medium text-gray-700"
@@ -256,7 +257,7 @@ export default function LetterSettingsPage() {
                   setNewLetter({ ...newLetter, elementType: value })
                 }
               >
-                <SelectTrigger className="p-2 mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Wybierz typ elementu" />
                 </SelectTrigger>
                 <SelectContent>
@@ -308,32 +309,32 @@ export default function LetterSettingsPage() {
                 className="p-2 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
               /> */}
             </div>
-            <div className="mb-4">
+            <div className="flex-1 min-w-0">
               <label
                 htmlFor="name"
                 className="block text-sm font-medium text-gray-700"
               >
                 Wartość
               </label>
-              <input
+              <Input
                 type="text"
                 id="elementValue"
                 value={newLetter.elementValue}
                 onChange={(e) =>
                   setNewLetter({ ...newLetter, elementValue: e.target.value })
                 }
-                className="p-2 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                placeholder="Wprowadź wartość"
               />
             </div>
-            <div className="mb-4">
+            <div className="flex-1 min-w-0">
               <label
                 htmlFor="name"
                 className="block text-sm font-medium text-gray-700"
               >
                 Marża
               </label>
-              <input
-                type="text"
+              <Input
+                type="number"
                 id="margin"
                 value={newLetter.margin}
                 onChange={(e) =>
@@ -342,32 +343,32 @@ export default function LetterSettingsPage() {
                     margin: parseFloat(e.target.value),
                   })
                 }
-                className="p-2 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                placeholder="Wprowadź marżę"
               />
             </div>
-            <div className="mb-4">
+            <div className="flex-1 min-w-0">
               <label
                 htmlFor="name"
                 className="block text-sm font-medium text-gray-700"
               >
                 Jednostka
               </label>
-              <input
+              <Input
                 type="text"
                 id="unit"
                 value={newLetter.unit}
                 onChange={(e) =>
                   setNewLetter({ ...newLetter, unit: e.target.value })
                 }
-                className="p-2 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                placeholder="Wprowadź jednostkę"
               />
             </div>
-            <div className="mb-4">
+            <div className="w-full">
               <button
                 type="submit"
-                className="bg-blue-500 w-full text-white p-2 rounded-md hover:bg-blue-600"
+                className="bg-primary w-full text-white p-2 rounded-md hover:bg-primary/90"
               >
-                Wyślij
+                Dodaj parametr
               </button>
             </div>
           </form>

@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useLetters } from "@/hooks/useLetters";
+import Link from "next/link";
 
 export default function LetterPage() {
   // Hook do pobierania danych z bazy
@@ -158,6 +159,7 @@ export default function LetterPage() {
           <div className="p-6 space-y-8">
             {/* Tekst */}
             <div>
+              <Link  href="/letterSettings">Parametry konfiguracyjne</Link>
               <h3 className="text-lg font-semibold mb-4">Tekst</h3>
               <div className="space-y-4">
                 <div>
