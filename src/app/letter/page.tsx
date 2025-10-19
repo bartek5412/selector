@@ -4,11 +4,8 @@ import { useRef, useState } from "react";
 import Scene3D from "@/components/three/LetterScene";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { definedColor, definedColor2 } from "@/components/three/untils";
-import ColorSwatch, { ColorData } from "@/components/ui/colorSwatch";
+import { definedColor } from "@/components/three/untils";
 import { Switch } from "@/components/ui/switch";
 import {
   Select,
@@ -16,13 +13,11 @@ import {
   SelectContent,
   SelectTrigger,
   SelectValue,
-  SelectLabel,
 } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   backLetterOptions,
   dimmerOptions,
-  fontTypeOptions,
   frontLetterAdditionalOptions,
   frontLetterOptions,
   lightingOptions,
@@ -39,9 +34,9 @@ export default function LetterPage() {
   const rodThickness = 0.1;
   const [showGlow, setShowGlow] = useState(false);
   // Stan przechowujący głębokość (grubość) liter
-  const [depth, setDepth] = useState(0.5);
-  const [color, setColor] = useState(definedColor[0].value);
-  const [secondColor, setSecondColor] = useState("#000000");
+  const [depth] = useState(0.5);
+  const [color] = useState(definedColor[0].value);
+  const [secondColor] = useState("#000000");
   const [showDark, setShowDark] = useState(false);
   const rodOffset = -depth - 0.05;
   const [showRods, setShowRods] = useState(true);
@@ -49,7 +44,7 @@ export default function LetterPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Stany dla selectów
-  const [fontType, setFontType] = useState("text");
+  // const [fontType] = useState("text");
   const [frontLetter, setFrontLetter] = useState("standard");
   const [backLetter, setBackLetter] = useState("flat");
   const [frontLetterAdd, setFrontLetterAdd] = useState("standard");
@@ -76,7 +71,7 @@ export default function LetterPage() {
     // Kliknięcie przycisku symuluje kliknięcie na ukryty input
     fileInputRef.current?.click();
   };
-  
+
   return (
     <main className="flex h-screen w-screen flex-col lg:flex-row">
       {/* Panel kontrolny */}
@@ -407,7 +402,6 @@ export default function LetterPage() {
                     </div>
                   </div>
                 </div>
-
               </div>
             </div>
           </div>

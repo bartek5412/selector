@@ -5,7 +5,7 @@ import {
   createEditableColumns,
   LetterSettings,
 } from "@/app/letterSettings/letterColumns";
-import { useLetters, Letter } from "@/hooks/useLetters";
+import { useLetters } from "@/hooks/useLetters";
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -45,7 +45,7 @@ export default function LetterSettingsPage() {
         await filterLetters(elementType);
       }
       setSelectedFilter(elementType);
-    } catch (err) {
+    } catch {
       alert("Wystąpił błąd podczas filtrowania danych");
     }
   };
@@ -55,13 +55,13 @@ export default function LetterSettingsPage() {
     try {
       await refetch();
       setSelectedFilter("");
-    } catch (err) {
+    } catch {
       alert("Wystąpił błąd podczas resetowania filtra");
     }
   };
 
   // Obsługa zapisywania z alertami
-  const handleSave = async (id: string, changes: any) => {
+  const handleSave = async (id: string, changes: Partial<LetterSettings>) => {
     try {
       await updateLetter(id, changes);
     } catch (err) {
@@ -169,8 +169,8 @@ export default function LetterSettingsPage() {
             </div>
             <ScrollArea className="h-[250px]">
               <DataTable
-                columns={columns as ColumnDef<any>[]}
-                data={data as any[]}
+                columns={columns as ColumnDef<LetterSettings>[]}
+                data={data as LetterSettings[]}
               />
             </ScrollArea>
           </>

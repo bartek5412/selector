@@ -29,8 +29,8 @@ export const createEditableColumns = (
     field,
     rowId,
   }: {
-    value: any;
-    onSave: (id: string, field: string, value: any) => void;
+    value: string | number;
+    onSave: (id: string, field: string, value: string | number) => void;
     field: string;
     rowId: string;
   }) => {
