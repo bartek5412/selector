@@ -131,8 +131,8 @@
   }
   html,
   body {
-    @apply overflow-hidden;
-    height: 100vh;
+    @apply overflow-x-hidden;
+    min-height: 100vh;
   }
   body {
     @apply bg-background text-foreground;

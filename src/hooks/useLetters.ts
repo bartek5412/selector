@@ -14,7 +14,7 @@ export type LetterSettings = {
   description: string;
   price: number;
   elementType: string;
-  elementValue: string;
+  elementValue: number;
   margin: number;
   unit: string;
 };

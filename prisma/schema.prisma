@@ -28,9 +28,9 @@ model Letter {
     description String
     price Float
     elementType String
-    elementValue String?
+    elementValue Float?
     margin Float?
     unit String?
-  //  createdAt DateTime @default(now())
-  //  updatedAt DateTime @updatedAt
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
 }

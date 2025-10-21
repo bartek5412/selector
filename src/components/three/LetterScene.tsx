@@ -26,6 +26,7 @@ function CameraPosition() {
 // Definiujemy typy dla propsów
 interface SceneProps {
   text: string;
+  length: number;
   depth: number;
   color: string;
   x: number;
@@ -37,10 +38,13 @@ interface SceneProps {
   showGlow: boolean;
   svgData: string | null;
   showDark: boolean;
+  tapeDepth: number;
+  totalPrice: number;
 }
 
 export default function Scene3D({
   text,
+  length,
   depth,
   color,
   x,
@@ -52,6 +56,8 @@ export default function Scene3D({
   showGlow,
   svgData,
   showDark,
+  tapeDepth,
+  totalPrice,
 }: SceneProps) {
   return (
     <div className="relative w-full h-full">
@@ -117,7 +123,6 @@ export default function Scene3D({
         )}
 
         {/* Komponent wyświetlający pozycję kamery */}
-        <CameraPosition />
       </Canvas>
 
       {/* Card w lewym dolnym narożniku */}
@@ -126,14 +131,24 @@ export default function Scene3D({
           <h3 className="text-sm font-semibold text-[#111827]">Informacje</h3>
           <div className="text-xs text-[#111827]/70 space-y-1">
             <p>
-              Tekst: <span className="font-medium">{text}</span>
+              Długość:{" "}
+              <span className="font-medium">{length.toFixed(0)} mm</span>
             </p>
             <p>
-              Głębokość: <span className="font-medium">{depth.toFixed(2)}</span>
+              Głębokość taśmy:{" "}
+              <span className="font-medium">{tapeDepth.toFixed(2)}</span>
             </p>
             <p>
               Kolor: <span className="font-medium">{color}</span>
             </p>
+            <div className="pt-2 border-t border-gray-200">
+              <p className="text-sm font-semibold text-[#111827]">
+                Cena:{" "}
+                <span className="text-green-600">
+                  {totalPrice.toFixed(2)} zł
+                </span>
+              </p>
+            </div>
           </div>
         </div>
       </Card>

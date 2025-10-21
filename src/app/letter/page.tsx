@@ -17,6 +17,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useLetters } from "@/hooks/useLetters";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
 export default function LetterPage() {
   // Hook do pobierania danych z bazy
@@ -24,9 +25,10 @@ export default function LetterPage() {
 
   // Stan przechowujący tekst do wygenerowania
   const [text, setText] = useState("Sample");
+  const searchParams = useSearchParams();
+  const pathLength = searchParams.get("pathLength");
+  const length = pathLength ? parseFloat(pathLength) : 0;
   const [showGlow, setShowGlow] = useState(false);
-  // Stan przechowujący głębokość (grubość) liter
-  const [depth] = useState(0.5);
   const [color] = useState(definedColor[0].value);
   const [secondColor] = useState("#000000");
   const [showDark, setShowDark] = useState(false);
@@ -34,51 +36,62 @@ export default function LetterPage() {
   const [svgData, setSvgData] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Stany dla selectów - domyślne wartości z bazy danych
-  // const [fontType] = useState("text");
-  const [frontLetter, setFrontLetter] = useState(
-    getOptionsByElementType("frontLetterOptions")[0]?.elementValue || "standard"
-  );
-  const [backLetter, setBackLetter] = useState(
-    getOptionsByElementType("backLetterOptions")[0]?.elementValue || "flat"
-  );
-  const [frontLetterAdd, setFrontLetterAdd] = useState(
-    getOptionsByElementType("frontLetterAdditionalOptions")[0]?.elementValue ||
-      "standard"
-  );
-  const [tapeDepth, setTapeDepth] = useState(
-    getOptionsByElementType("tapeDepthOptions")[0]?.elementValue || "medium"
-  );
-  const [tapeModel, setTapeModel] = useState(
-    getOptionsByElementType("tapeModelOptions")[0]?.elementValue || "led-strip"
-  );
-  const [tapeColor, setTapeColor] = useState(
-    getOptionsByElementType("tapeColorOptions")[0]?.elementValue || "white"
-  );
-  const [tapeColor2, setTapeColor2] = useState(
-    getOptionsByElementType("tapeColorOptions")[0]?.elementValue || "white"
-  );
-  const [lighting, setLighting] = useState(
-    getOptionsByElementType("lightingOptions")[0]?.elementValue || "static"
-  );
-  const [mounting, setMounting] = useState(
-    getOptionsByElementType("mountingOptions")[0]?.elementValue || "screws"
-  );
-  const [substructure, setSubstructure] = useState(
-    getOptionsByElementType("substructureOptions")[0]?.elementValue ||
-      "aluminum"
-  );
-  const [dimmer, setDimmer] = useState(
-    getOptionsByElementType("dimmerOptions")[0]?.elementValue || "none"
-  );
+  // Stany dla selectów - inicjalizujemy domyślnymi wartościami
+  const [frontLetter, setFrontLetter] = useState<string>("");
+  const [backLetter, setBackLetter] = useState<string>("");
+  const [frontLetterAdd, setFrontLetterAdd] = useState<string>("");
+  const [tapeDepth, setTapeDepth] = useState<string>("");
+
+  // Stan przechowujący głębokość (grubość) liter - używamy tapeDepth bezpośrednio
+  const depth = parseFloat(tapeDepth) || 1.0;
+
+  const [tapeModel, setTapeModel] = useState<string>("");
+  const [tapeColor, setTapeColor] = useState<string>("");
+  const [tapeColor2, setTapeColor2] = useState<string>("");
+  const [lighting, setLighting] = useState<string>("");
+  const [mounting, setMounting] = useState<string>("");
+  const [substructure, setSubstructure] = useState<string>("");
+  const [dimmer, setDimmer] = useState<string>("");
+
+  // Flaga aby zapobiec resetowaniu wartości wybranych przez użytkownika
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // Obliczane wartości
   const rodThickness = 0.1;
   const rodOffset = -depth - 0.05;
 
-  // Aktualizuj domyślne wartości gdy dane się załadują
+  // Funkcja do pobierania ceny dla wybranej opcji
+  const getPriceForOption = (elementType: string, selectedId: string) => {
+    const options = getOptionsByElementType(elementType);
+    const selectedOption = options.find((option) => option.id === selectedId);
+    return selectedOption ? selectedOption.price : 0;
+  };
+
+  // Kalkulacja ceny - suma wszystkich wybranych opcji pomnożona przez długość
+  const calculatePrice = () => {
+    const prices = [
+      getPriceForOption("frontLetterOptions", frontLetter),
+      getPriceForOption("backLetterOptions", backLetter),
+      getPriceForOption("frontLetterAdditionalOptions", frontLetterAdd),
+      getPriceForOption("tapeDepthOptions", tapeDepth),
+      getPriceForOption("tapeModelOptions", tapeModel),
+      getPriceForOption("tapeColorOptions", tapeColor),
+      getPriceForOption("tapeColorOptions", tapeColor2), // drugi kolor
+      getPriceForOption("lightingOptions", lighting),
+      getPriceForOption("mountingOptions", mounting),
+      getPriceForOption("substructureOptions", substructure),
+      getPriceForOption("dimmerOptions", dimmer),
+    ];
+
+    const totalPricePerUnit = prices.reduce((sum, price) => sum + price, 0);
+    return (totalPricePerUnit * length) / 1000;
+  };
+
+  const totalPrice = calculatePrice();
+
+  // Aktualizuj domyślne wartości gdy dane się załadują (tylko raz)
   useEffect(() => {
-    if (!loading && data.length > 0) {
+    if (!loading && data.length > 0 && !isInitialized) {
       const frontLetterOptions = getOptionsByElementType("frontLetterOptions");
       const backLetterOptions = getOptionsByElementType("backLetterOptions");
       const frontLetterAdditionalOptions = getOptionsByElementType(
@@ -95,28 +108,28 @@ export default function LetterPage() {
       const dimmerOptions = getOptionsByElementType("dimmerOptions");
 
       if (frontLetterOptions.length > 0)
-        setFrontLetter(frontLetterOptions[0].elementValue);
-      if (backLetterOptions.length > 0)
-        setBackLetter(backLetterOptions[0].elementValue);
+        setFrontLetter(frontLetterOptions[0].id);
+      if (backLetterOptions.length > 0) setBackLetter(backLetterOptions[0].id);
       if (frontLetterAdditionalOptions.length > 0)
-        setFrontLetterAdd(frontLetterAdditionalOptions[0].elementValue);
-      if (tapeDepthOptions.length > 0)
-        setTapeDepth(tapeDepthOptions[0].elementValue);
-      if (tapeModelOptions.length > 0)
-        setTapeModel(tapeModelOptions[0].elementValue);
+        setFrontLetterAdd(frontLetterAdditionalOptions[0].id);
+      if (tapeDepthOptions.length > 0) setTapeDepth(tapeDepthOptions[0].id);
+      if (tapeModelOptions.length > 0) setTapeModel(tapeModelOptions[0].id);
       if (tapeColorOptions.length > 0) {
-        setTapeColor(tapeColorOptions[0].elementValue);
-        setTapeColor2(tapeColorOptions[0].elementValue);
+        setTapeColor(tapeColorOptions[0].id);
+        setTapeColor2(tapeColorOptions[0].id);
       }
-      if (lightingOptions.length > 0)
-        setLighting(lightingOptions[0].elementValue);
-      if (mountingOptions.length > 0)
-        setMounting(mountingOptions[0].elementValue);
+      if (lightingOptions.length > 0) setLighting(lightingOptions[0].id);
+      if (mountingOptions.length > 0) setMounting(mountingOptions[0].id);
       if (substructureOptions.length > 0)
-        setSubstructure(substructureOptions[0].elementValue);
-      if (dimmerOptions.length > 0) setDimmer(dimmerOptions[0].elementValue);
+        setSubstructure(substructureOptions[0].id);
+      if (dimmerOptions.length > 0) {
+        setDimmer(dimmerOptions[0].id);
+      }
+
+      // Oznacz jako zainicjalizowane
+      setIsInitialized(true);
     }
-  }, [loading, data, getOptionsByElementType]);
+  }, [loading, data, isInitialized]);
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -126,11 +139,6 @@ export default function LetterPage() {
       setSvgData(text); // Zapisujemy zawartość pliku SVG do stanu
     };
     reader.readAsText(file);
-  };
-
-  const handleUploadClick = () => {
-    // Kliknięcie przycisku symuluje kliknięcie na ukryty input
-    fileInputRef.current?.click();
   };
 
   // Loading state
@@ -159,7 +167,10 @@ export default function LetterPage() {
           <div className="p-6 space-y-8">
             {/* Tekst */}
             <div>
-              <Link  href="/letterSettings">Parametry konfiguracyjne</Link>
+              <div className="flex gap-4 justify-center">
+              <Link className="text-primary px-4 hover:text-primary/80 bg-primary/10 rounded-md p-1" href="/letterSettings">Parametry konfiguracyjne</Link>
+              <Link className="text-primary px-4 hover:text-primary/80 bg-primary/10 rounded-md p-1" href="/pdfsize">Wgraj PDF</Link>
+              </div>
               <h3 className="text-lg font-semibold mb-4">Tekst</h3>
               <div className="space-y-4">
                 <div>
@@ -174,20 +185,6 @@ export default function LetterPage() {
                     className="w-full"
                   />
                 </div>
-                <Button
-                  onClick={handleUploadClick}
-                  className="w-full"
-                  variant="outline"
-                >
-                  Wgraj SVG
-                </Button>
-                <Input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleFileChange}
-                  accept=".svg"
-                  className="hidden"
-                />
               </div>
             </div>
 
@@ -199,17 +196,17 @@ export default function LetterPage() {
                   <Label className="text-sm font-medium mb-2 block">
                     Front litery
                   </Label>
-                  <Select value={frontLetter} onValueChange={setFrontLetter}>
+                  <Select
+                    value={frontLetter}
+                    onValueChange={(value) => setFrontLetter(value)}
+                  >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Wybierz typ" />
                     </SelectTrigger>
                     <SelectContent>
                       {getOptionsByElementType("frontLetterOptions").map(
                         (option) => (
-                          <SelectItem
-                            key={option.id}
-                            value={option.elementValue}
-                          >
+                          <SelectItem key={option.id} value={option.id}>
                             {option.name}
                           </SelectItem>
                         )
@@ -222,17 +219,17 @@ export default function LetterPage() {
                   <Label className="text-sm font-medium mb-2 block">
                     Tył litery
                   </Label>
-                  <Select value={backLetter} onValueChange={setBackLetter}>
+                  <Select
+                    value={backLetter}
+                    onValueChange={(value) => setBackLetter(value)}
+                  >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Wybierz typ" />
                     </SelectTrigger>
                     <SelectContent>
                       {getOptionsByElementType("backLetterOptions").map(
                         (option) => (
-                          <SelectItem
-                            key={option.id}
-                            value={option.elementValue}
-                          >
+                          <SelectItem key={option.id} value={option.id}>
                             {option.name}
                           </SelectItem>
                         )
@@ -247,7 +244,7 @@ export default function LetterPage() {
                   </Label>
                   <Select
                     value={frontLetterAdd}
-                    onValueChange={setFrontLetterAdd}
+                    onValueChange={(value) => setFrontLetterAdd(value)}
                   >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Wybierz opcję" />
@@ -256,7 +253,7 @@ export default function LetterPage() {
                       {getOptionsByElementType(
                         "frontLetterAdditionalOptions"
                       ).map((option) => (
-                        <SelectItem key={option.id} value={option.elementValue}>
+                        <SelectItem key={option.id} value={option.id}>
                           {option.name}
                         </SelectItem>
                       ))}
@@ -268,17 +265,17 @@ export default function LetterPage() {
                   <Label className="text-sm font-medium mb-2 block">
                     Głębokość taśmy
                   </Label>
-                  <Select value={tapeDepth} onValueChange={setTapeDepth}>
+                  <Select
+                    value={tapeDepth}
+                    onValueChange={(value) => setTapeDepth(value)}
+                  >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Wybierz głębokość" />
                     </SelectTrigger>
                     <SelectContent>
                       {getOptionsByElementType("tapeDepthOptions").map(
                         (option) => (
-                          <SelectItem
-                            key={option.id}
-                            value={option.elementValue}
-                          >
+                          <SelectItem key={option.id} value={option.id}>
                             {option.name}
                           </SelectItem>
                         )
@@ -295,42 +292,19 @@ export default function LetterPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label className="text-sm font-medium mb-2 block">
-                    Głębokość taśmy
-                  </Label>
-                  <Select value={tapeDepth} onValueChange={setTapeDepth}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Wybierz głębokość" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {getOptionsByElementType("tapeDepthOptions").map(
-                        (option) => (
-                          <SelectItem
-                            key={option.id}
-                            value={option.elementValue}
-                          >
-                            {option.name}
-                          </SelectItem>
-                        )
-                      )}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label className="text-sm font-medium mb-2 block">
                     Model taśmy
                   </Label>
-                  <Select value={tapeModel} onValueChange={setTapeModel}>
+                  <Select
+                    value={tapeModel}
+                    onValueChange={(value) => setTapeModel(value)}
+                  >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Wybierz model" />
                     </SelectTrigger>
                     <SelectContent>
                       {getOptionsByElementType("tapeModelOptions").map(
                         (option) => (
-                          <SelectItem
-                            key={option.id}
-                            value={option.elementValue}
-                          >
+                          <SelectItem key={option.id} value={option.id}>
                             {option.name}
                           </SelectItem>
                         )
@@ -343,17 +317,17 @@ export default function LetterPage() {
                   <Label className="text-sm font-medium mb-2 block">
                     Kolor taśmy
                   </Label>
-                  <Select value={tapeColor} onValueChange={setTapeColor}>
+                  <Select
+                    value={tapeColor}
+                    onValueChange={(value) => setTapeColor(value)}
+                  >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Wybierz kolor" />
                     </SelectTrigger>
                     <SelectContent>
                       {getOptionsByElementType("tapeColorOptions").map(
                         (option) => (
-                          <SelectItem
-                            key={option.id}
-                            value={option.elementValue}
-                          >
+                          <SelectItem key={option.id} value={option.id}>
                             {option.name}
                           </SelectItem>
                         )
@@ -366,17 +340,17 @@ export default function LetterPage() {
                   <Label className="text-sm font-medium mb-2 block">
                     Kolor drugi
                   </Label>
-                  <Select value={tapeColor2} onValueChange={setTapeColor2}>
+                  <Select
+                    value={tapeColor2}
+                    onValueChange={(value) => setTapeColor2(value)}
+                  >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Wybierz kolor" />
                     </SelectTrigger>
                     <SelectContent>
                       {getOptionsByElementType("tapeColorOptions").map(
                         (option) => (
-                          <SelectItem
-                            key={option.id}
-                            value={option.elementValue}
-                          >
+                          <SelectItem key={option.id} value={option.id}>
                             {option.name}
                           </SelectItem>
                         )
@@ -389,17 +363,17 @@ export default function LetterPage() {
                   <Label className="text-sm font-medium mb-2 block">
                     Typ oświetlenia
                   </Label>
-                  <Select value={lighting} onValueChange={setLighting}>
+                  <Select
+                    value={lighting}
+                    onValueChange={(value) => setLighting(value)}
+                  >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Wybierz oświetlenie" />
                     </SelectTrigger>
                     <SelectContent>
                       {getOptionsByElementType("lightingOptions").map(
                         (option) => (
-                          <SelectItem
-                            key={option.id}
-                            value={option.elementValue}
-                          >
+                          <SelectItem key={option.id} value={option.id}>
                             {option.name}
                           </SelectItem>
                         )
@@ -412,17 +386,17 @@ export default function LetterPage() {
                   <Label className="text-sm font-medium mb-2 block">
                     Ściemniacz
                   </Label>
-                  <Select value={dimmer} onValueChange={setDimmer}>
+                  <Select
+                    value={dimmer}
+                    onValueChange={(value) => setDimmer(value)}
+                  >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Wybierz typ" />
                     </SelectTrigger>
                     <SelectContent>
                       {getOptionsByElementType("dimmerOptions").map(
                         (option) => (
-                          <SelectItem
-                            key={option.id}
-                            value={option.elementValue}
-                          >
+                          <SelectItem key={option.id} value={option.id}>
                             {option.name}
                           </SelectItem>
                         )
@@ -441,17 +415,17 @@ export default function LetterPage() {
                   <Label className="text-sm font-medium mb-2 block">
                     Mocowanie
                   </Label>
-                  <Select value={mounting} onValueChange={setMounting}>
+                  <Select
+                    value={mounting}
+                    onValueChange={(value) => setMounting(value)}
+                  >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Wybierz mocowanie" />
                     </SelectTrigger>
                     <SelectContent>
                       {getOptionsByElementType("mountingOptions").map(
                         (option) => (
-                          <SelectItem
-                            key={option.id}
-                            value={option.elementValue}
-                          >
+                          <SelectItem key={option.id} value={option.id}>
                             {option.name}
                           </SelectItem>
                         )
@@ -464,17 +438,17 @@ export default function LetterPage() {
                   <Label className="text-sm font-medium mb-2 block">
                     Materiał
                   </Label>
-                  <Select value={substructure} onValueChange={setSubstructure}>
+                  <Select
+                    value={substructure}
+                    onValueChange={(value) => setSubstructure(value)}
+                  >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Wybierz materiał" />
                     </SelectTrigger>
                     <SelectContent>
                       {getOptionsByElementType("substructureOptions").map(
                         (option) => (
-                          <SelectItem
-                            key={option.id}
-                            value={option.elementValue}
-                          >
+                          <SelectItem key={option.id} value={option.id}>
                             {option.name}
                           </SelectItem>
                         )
@@ -549,6 +523,7 @@ export default function LetterPage() {
       <div className="flex-1 h-full bg-[#D1D5DB] dark:bg-gray-800">
         <Scene3D
           text={text}
+          length={length}
           depth={depth}
           color={color}
           x={1}
@@ -560,6 +535,8 @@ export default function LetterPage() {
           showGlow={showGlow}
           svgData={svgData}
           showDark={showDark}
+          tapeDepth={depth}
+          totalPrice={totalPrice}
         />
       </div>
     </main>

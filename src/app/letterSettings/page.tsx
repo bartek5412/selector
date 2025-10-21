@@ -38,7 +38,7 @@ export default function LetterSettingsPage() {
     description: "Test",
     price: 0,
     elementType: "Test",
-    elementValue: "Test",
+    elementValue: 0,
     margin: 0,
     unit: "Test",
   });
@@ -90,7 +90,7 @@ export default function LetterSettingsPage() {
         description: "",
         price: 0,
         elementType: "",
-        elementValue: "",
+        elementValue: 0,
         margin: 0,
         unit: "",
       });
@@ -261,42 +261,11 @@ export default function LetterSettingsPage() {
                   <SelectValue placeholder="Wybierz typ elementu" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem key="fontTypeOptions" value="fontTypeOptions">
-                    fontTypeOptions
-                  </SelectItem>
-                  <SelectItem
-                    key="frontLetterOptions"
-                    value="frontLetterOptions"
-                  >
-                    frontLetterOptions
-                  </SelectItem>
-                  <SelectItem key="backLetterOptions" value="backLetterOptions">
-                    backLetterOptions
-                  </SelectItem>
-                  <SelectItem
-                    key="frontLetterAdditionalOptions"
-                    value="frontLetterAdditionalOptions"
-                  >
-                    frontLetterAdditionalOptions
-                  </SelectItem>
-                  <SelectItem key="tapeDepthOptions" value="tapeDepthOptions">
-                    tapeDepthOptions
-                  </SelectItem>
-                  <SelectItem key="tapeModelOptions" value="tapeModelOptions">
-                    tapeModelOptions
-                  </SelectItem>
-                  <SelectItem key="tapeColorOptions" value="tapeColorOptions">
-                    tapeColorOptions
-                  </SelectItem>
-                  <SelectItem key="tapeWidthOptions" value="tapeWidthOptions">
-                    tapeWidthOptions
-                  </SelectItem>
-                  <SelectItem key="tapeHeightOptions" value="tapeHeightOptions">
-                    tapeHeightOptions
-                  </SelectItem>
-                  <SelectItem key="tapeLengthOptions" value="tapeLengthOptions">
-                    tapeLengthOptions
-                  </SelectItem>
+                  {getUniqueElementTypes().map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {type}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               {/* <input
@@ -317,13 +286,17 @@ export default function LetterSettingsPage() {
                 Wartość
               </label>
               <Input
-                type="text"
+                type="number"
                 id="elementValue"
                 value={newLetter.elementValue}
                 onChange={(e) =>
-                  setNewLetter({ ...newLetter, elementValue: e.target.value })
+                  setNewLetter({
+                    ...newLetter,
+                    elementValue: parseFloat(e.target.value) || 0,
+                  })
                 }
                 placeholder="Wprowadź wartość"
+                step="0.1"
               />
             </div>
             <div className="flex-1 min-w-0">
