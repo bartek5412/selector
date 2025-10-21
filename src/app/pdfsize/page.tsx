@@ -112,9 +112,24 @@ export default function PdfViewer() {
   };
 
   const handleNavigateToLetter = () => {
-    if (pathLength !== null) {
-      // Przekaż długość ścieżki jako query parameter
-      router.push(`/letter?pathLength=${pathLength.toFixed(3)}`);
+    if (pathLength !== null && selectedPathIndex !== null && apiData) {
+      // Zapisz dane ścieżki w localStorage
+      const selectedPath = apiData.paths[selectedPathIndex];
+      const pathData = {
+        length: pathLength,
+        pathIndex: selectedPathIndex,
+        path: selectedPath,
+        pageDimensions: apiData.pageDimensions,
+      };
+
+      // Generuj unikalny klucz dla sesji
+      const sessionKey = `pathData_${Date.now()}_${Math.random()
+        .toString(36)
+        .substr(2, 9)}`;
+      localStorage.setItem(sessionKey, JSON.stringify(pathData));
+
+      // Przekaż tylko klucz sesji przez URL
+      router.push(`/letter?pathSession=${sessionKey}`);
     }
   };
 

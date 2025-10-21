@@ -6,6 +6,7 @@ import TextModel from "./TextModel";
 import { Bloom, EffectComposer } from "@react-three/postprocessing";
 import { KernelSize } from "postprocessing";
 import SvgModel from "./SvgModel";
+import PathModel from "./PathModel";
 import { Card } from "@/components/ui/card";
 
 // Komponent do wyświetlania pozycji kamery
@@ -40,6 +41,7 @@ interface SceneProps {
   showDark: boolean;
   tapeDepth: number;
   totalPrice: number;
+  pathData: any | null;
 }
 
 export default function Scene3D({
@@ -58,6 +60,7 @@ export default function Scene3D({
   showDark,
   tapeDepth,
   totalPrice,
+  pathData,
 }: SceneProps) {
   return (
     <div className="relative w-full h-full">
@@ -80,8 +83,19 @@ export default function Scene3D({
             scale: 25,
           }}
         >
-          {" "}
-          {svgData ? (
+          {pathData ? (
+            // Jeśli mamy dane ścieżki z PDF, renderuj model ścieżki
+            <PathModel
+              pathData={pathData}
+              text={text}
+              depth={depth}
+              color={color}
+              secondColor={secondColor}
+              x={x}
+              y={y}
+              showRods={showRods}
+            />
+          ) : svgData ? (
             // Jeśli mamy dane SVG, renderuj model SVG
             <SvgModel
               svgData={svgData}

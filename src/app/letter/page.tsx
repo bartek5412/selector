@@ -26,8 +26,16 @@ export default function LetterPage() {
   // Stan przechowujący tekst do wygenerowania
   const [text, setText] = useState("Sample");
   const searchParams = useSearchParams();
-  const pathLength = searchParams.get("pathLength");
-  const length = pathLength ? parseFloat(pathLength) : 0;
+  const pathSessionKey = searchParams.get("pathSession");
+  const pathLength = searchParams.get("pathLength"); // Zachowujemy kompatybilność wsteczną
+
+  // Przetwarzanie danych ścieżki
+  const [pathData, setPathData] = useState<any>(null);
+  const length = pathData
+    ? pathData.length
+    : pathLength
+    ? parseFloat(pathLength)
+    : 0;
   const [showGlow, setShowGlow] = useState(false);
   const [color] = useState(definedColor[0].value);
   const [secondColor] = useState("#000000");
@@ -55,6 +63,24 @@ export default function LetterPage() {
 
   // Flaga aby zapobiec resetowaniu wartości wybranych przez użytkownika
   const [isInitialized, setIsInitialized] = useState(false);
+
+  // Przetwarzanie danych ścieżki z PDF
+  useEffect(() => {
+    if (pathSessionKey) {
+      try {
+        const storedData = localStorage.getItem(pathSessionKey);
+        if (storedData) {
+          const decodedPathData = JSON.parse(storedData);
+          setPathData(decodedPathData);
+
+          // Opcjonalnie: usuń dane z localStorage po odczytaniu
+          // localStorage.removeItem(pathSessionKey);
+        }
+      } catch (error) {
+        console.error("Błąd podczas przetwarzania danych ścieżki:", error);
+      }
+    }
+  }, [pathSessionKey]);
 
   // Obliczane wartości
   const rodThickness = 0.1;
@@ -168,8 +194,18 @@ export default function LetterPage() {
             {/* Tekst */}
             <div>
               <div className="flex gap-4 justify-center">
-              <Link className="text-primary px-4 hover:text-primary/80 bg-primary/10 rounded-md p-1" href="/letterSettings">Parametry konfiguracyjne</Link>
-              <Link className="text-primary px-4 hover:text-primary/80 bg-primary/10 rounded-md p-1" href="/pdfsize">Wgraj PDF</Link>
+                <Link
+                  className="text-primary px-4 hover:text-primary/80 bg-primary/10 rounded-md p-1"
+                  href="/letterSettings"
+                >
+                  Parametry konfiguracyjne
+                </Link>
+                <Link
+                  className="text-primary px-4 hover:text-primary/80 bg-primary/10 rounded-md p-1"
+                  href="/pdfsize"
+                >
+                  Wgraj PDF
+                </Link>
               </div>
               <h3 className="text-lg font-semibold mb-4">Tekst</h3>
               <div className="space-y-4">
@@ -537,6 +573,7 @@ export default function LetterPage() {
           showDark={showDark}
           tapeDepth={depth}
           totalPrice={totalPrice}
+          pathData={pathData}
         />
       </div>
     </main>
