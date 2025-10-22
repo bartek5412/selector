@@ -18,6 +18,22 @@ interface Rect {
 type PathItem = [string, ...(Point | Rect)[]];
 interface PathData {
   items: PathItem[];
+  fill?: boolean;
+  stroke?: boolean;
+  evenodd?: boolean;
+  closePath?: boolean;
+  rect?: any;
+  hasHoles?: boolean;
+  isClosed?: boolean;
+  complexity?: string;
+  validation?: {
+    valid: boolean;
+    issues: string[];
+    warnings: string[];
+    is_closed: boolean;
+    has_holes: boolean;
+    complexity: string;
+  };
 }
 interface PageDimensions {
   width: number;
@@ -102,6 +118,36 @@ export default function PdfViewer() {
       if (result.closestPathIndex !== -1 && result.length_mm !== null) {
         setSelectedPathIndex(result.closestPathIndex);
         setPathLength(result.length_mm);
+
+        // Wyświetl informacje o ścieżce w konsoli dla debugowania
+        if (result.hasHoles) {
+          console.log(
+            "Ścieżka ma dziury - będzie wymagała specjalnej obsługi w 3D"
+          );
+        }
+        if (!result.isClosed) {
+          console.log(
+            "Ścieżka nie jest domknięta - może być problemem w renderowaniu 3D"
+          );
+        }
+        console.log("Złożoność ścieżki:", result.complexity);
+
+        // Wyświetl informacje o walidacji
+        if (result.validation) {
+          console.log("Walidacja ścieżki:", result.validation);
+          if (result.validation.issues && result.validation.issues.length > 0) {
+            console.warn("Problemy ze ścieżką:", result.validation.issues);
+          }
+          if (
+            result.validation.warnings &&
+            result.validation.warnings.length > 0
+          ) {
+            console.warn(
+              "Ostrzeżenia dla ścieżki:",
+              result.validation.warnings
+            );
+          }
+        }
       } else {
         setSelectedPathIndex(null);
         setPathLength(null);
@@ -271,6 +317,93 @@ export default function PdfViewer() {
                   <div className="text-4xl font-bold text-primary mb-4">
                     {pathLength.toFixed(0)} mm
                   </div>
+
+                  {/* Wyświetl informacje o ścieżce */}
+                  {apiData && selectedPathIndex !== null && (
+                    <div className="mb-6 p-4 bg-muted/30 rounded-lg border">
+                      <h4 className="font-semibold text-sm mb-2">
+                        Informacje o ścieżce:
+                      </h4>
+                      <div className="text-xs text-muted-foreground space-y-1">
+                        {apiData.paths[selectedPathIndex]?.hasHoles && (
+                          <p className="text-orange-600">
+                            ⚠️ Ścieżka ma dziury (wymaga specjalnej obsługi)
+                          </p>
+                        )}
+                        {apiData.paths[selectedPathIndex]?.isClosed ===
+                          false && (
+                          <p className="text-yellow-600">
+                            ⚠️ Ścieżka nie jest domknięta
+                          </p>
+                        )}
+                        {apiData.paths[selectedPathIndex]?.complexity && (
+                          <p>
+                            Złożoność:{" "}
+                            {apiData.paths[selectedPathIndex].complexity}
+                          </p>
+                        )}
+
+                        {/* Wyświetl informacje o walidacji */}
+                        <div className="mt-2 pt-2 border-t border-gray-200">
+                          <h5 className="font-medium text-xs mb-1">
+                            Walidacja:
+                          </h5>
+                          {apiData.paths[selectedPathIndex]?.validation && (
+                            <>
+                              {apiData.paths[selectedPathIndex].validation
+                                .valid ? (
+                                <p className="text-green-600">
+                                  ✅ Ścieżka jest poprawna
+                                </p>
+                              ) : (
+                                <p className="text-red-600">
+                                  ❌ Ścieżka ma problemy
+                                </p>
+                              )}
+
+                              {apiData.paths[selectedPathIndex].validation
+                                .issues &&
+                                apiData.paths[selectedPathIndex].validation
+                                  .issues.length > 0 && (
+                                  <div className="mt-1">
+                                    {apiData.paths[
+                                      selectedPathIndex
+                                    ].validation.issues.map(
+                                      (issue: string, index: number) => (
+                                        <p key={index} className="text-red-600">
+                                          • {issue}
+                                        </p>
+                                      )
+                                    )}
+                                  </div>
+                                )}
+
+                              {apiData.paths[selectedPathIndex].validation
+                                .warnings &&
+                                apiData.paths[selectedPathIndex].validation
+                                  .warnings.length > 0 && (
+                                  <div className="mt-1">
+                                    {apiData.paths[
+                                      selectedPathIndex
+                                    ].validation.warnings.map(
+                                      (warning: string, index: number) => (
+                                        <p
+                                          key={index}
+                                          className="text-yellow-600"
+                                        >
+                                          • {warning}
+                                        </p>
+                                      )
+                                    )}
+                                  </div>
+                                )}
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <p className="text-muted-foreground mb-6">
                     Kliknij na inną ścieżkę, aby zmierzyć jej długość
                   </p>
