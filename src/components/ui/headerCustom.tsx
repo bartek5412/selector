@@ -10,8 +10,8 @@ export default function HeaderCustom() {
   const navItems = [
     { href: "/", label: "Strona główna" },
     { href: "/letter", label: "Litery" },
-     { href: "/pylons", label: "Pylony" },
-     { href: "/smartFrame", label: "Smart Frame" },
+   //  { href: "/pylons", label: "Pylony" },
+   //  { href: "/smartFrame", label: "Smart Frame" },
     //  { href: "/test-frame", label: "Test 3D" },
   ];
 
@@ -21,7 +21,7 @@ export default function HeaderCustom() {
         <div className="mr-4 flex">
           <Link href="/" className=" ml-8 mr-6 flex items-center space-x-2">
             <span className="font-bold text-xl text-[#111827]">
-              Frakto Generator
+              Selector Generator
             </span>
           </Link>
         </div>

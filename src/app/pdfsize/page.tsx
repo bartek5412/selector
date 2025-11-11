@@ -179,16 +179,6 @@ export default function PdfViewer() {
     }
   };
 
-  const handleNavigateToPylons = () => {
-    if (pathLength !== null) {
-      // Przekaż długość ścieżki do strony pylons
-      router.push(`/pylons?pathLength=${pathLength.toFixed(3)}`);
-    }
-  };
-
-  // ✅ KLUCZOWA POPRAWKA JEST TUTAJ
-  // Ten `useEffect` odpowiada za rysowanie i odświeżanie canvasa.
-  // Uruchomi się ponownie za każdym razem, gdy zmieni się `apiData` lub `selectedPathIndex`.
   useEffect(() => {
     if (!apiData || !canvasRef.current) return;
 
@@ -413,12 +403,6 @@ export default function PdfViewer() {
                       className="px-8 py-3 bg-primary text-primary-foreground font-semibold rounded-md hover:bg-primary/90 transition-colors duration-200 shadow-sm hover:shadow-md"
                     >
                       Przejdź do generatora liter
-                    </button>
-                    <button
-                      onClick={handleNavigateToPylons}
-                      className="px-8 py-3 bg-secondary text-secondary-foreground font-semibold rounded-md hover:bg-secondary/90 transition-colors duration-200 shadow-sm hover:shadow-md border border-border"
-                    >
-                      Przejdź do generatora pylonów
                     </button>
                   </div>
                 </div>

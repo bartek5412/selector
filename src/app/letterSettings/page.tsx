@@ -326,15 +326,23 @@ export default function LetterSettingsPage() {
               >
                 Jednostka
               </label>
-              <Input
-                type="text"
-                id="unit"
+              <Select
                 value={newLetter.unit}
-                onChange={(e) =>
-                  setNewLetter({ ...newLetter, unit: e.target.value })
+                onValueChange={(value) =>
+                  setNewLetter({ ...newLetter, unit: value })
                 }
-                placeholder="Wprowadź jednostkę"
-              />
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Wybierz jednostkę" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="mm">mm</SelectItem>
+                  <SelectItem value="m²">m²</SelectItem>
+                  <SelectItem value="szt">szt</SelectItem>
+                  <SelectItem value="kpl">kpl</SelectItem>
+                </SelectContent>
+              </Select>
+
             </div>
             <div className="w-full">
               <button

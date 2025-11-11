@@ -62,6 +62,47 @@ export default function Scene3D({
   totalPrice,
   pathData,
 }: SceneProps) {
+  // Przelicznik punktów PDF na mm
+  const PT_TO_MM = 25.4 / 72.0;
+
+  // BBOX dla zaznaczonego napisu (tylko bieżący pathData)
+  const bbox = (() => {
+    if (!pathData?.path?.items) return null;
+    let minX = Infinity,
+      minY = Infinity,
+      maxX = -Infinity,
+      maxY = -Infinity;
+    for (const item of pathData.path.items as Array<[string, ...any[]]>) {
+      const points = item.slice(1);
+      for (const p of points) {
+        if (p?.type === "point") {
+          if (p.x < minX) minX = p.x;
+          if (p.y < minY) minY = p.y;
+          if (p.x > maxX) maxX = p.x;
+          if (p.y > maxY) maxY = p.y;
+        } else if (p?.type === "rect") {
+          if (p.x0 < minX) minX = p.x0;
+          if (p.y0 < minY) minY = p.y0;
+          if (p.x1 > maxX) maxX = p.x1;
+          if (p.y1 > maxY) maxY = p.y1;
+        }
+      }
+    }
+    if (
+      !isFinite(minX) ||
+      !isFinite(minY) ||
+      !isFinite(maxX) ||
+      !isFinite(maxY)
+    )
+      return null;
+    const widthPt = Math.max(0, maxX - minX);
+    const heightPt = Math.max(0, maxY - minY);
+    const areaPt2 = widthPt * heightPt;
+    const widthMm = widthPt * PT_TO_MM;
+    const heightMm = heightPt * PT_TO_MM;
+    const areaMm2 = areaPt2 * PT_TO_MM ** 2;
+    return { widthMm, heightMm, areaMm2 };
+  })();
   return (
     <div className="relative w-full h-full">
       <Canvas
@@ -89,7 +130,7 @@ export default function Scene3D({
               pathData={pathData}
               text={text}
               depth={depth}
-              color={color}
+              color={"#000000"}
               secondColor={secondColor}
               x={x}
               y={y}
@@ -144,17 +185,26 @@ export default function Scene3D({
         <div className="space-y-2">
           <h3 className="text-sm font-semibold text-[#111827]">Informacje</h3>
           <div className="text-xs text-[#111827]/70 space-y-1">
-            <p>
-              Długość:{" "}
-              <span className="font-medium">{length.toFixed(0)} mm</span>
-            </p>
-            <p>
-              Głębokość taśmy:{" "}
-              <span className="font-medium">{tapeDepth.toFixed(2)}</span>
-            </p>
-            <p>
-              Kolor: <span className="font-medium">{color}</span>
-            </p>
+            {bbox && (
+              <div className="pt-2 border-t border-gray-200 space-y-1">
+                <p>
+                  Długość:{" "}
+                  <span className="font-medium">{length.toFixed(0)} mm</span>
+                </p>
+                <p>
+                  Szerokość × Wysokość:{" "}
+                  <span className="font-medium">
+                    {bbox.widthMm.toFixed(1)} mm × {bbox.heightMm.toFixed(1)} mm
+                  </span>
+                </p>
+                <p>
+                  Powierzchnia:{" "}
+                  <span className="font-medium">
+                    {(bbox.areaMm2/10000).toFixed(2)} m²
+                  </span>
+                </p>
+              </div>
+            )}
             <div className="pt-2 border-t border-gray-200">
               <p className="text-sm font-semibold text-[#111827]">
                 Cena:{" "}

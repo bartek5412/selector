@@ -1,6 +1,6 @@
 "use client"; // Potrzebujemy interaktywności, więc to musi być komponent kliencki
 
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useMemo } from "react";
 import Scene3D from "@/components/three/LetterScene";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,6 +18,12 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useLetters } from "@/hooks/useLetters";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+  TooltipProvider,
+} from "@/components/ui/tooltip";
 
 export default function LetterPage() {
   // Hook do pobierania danych z bazy
@@ -37,6 +43,7 @@ export default function LetterPage() {
     ? parseFloat(pathLength)
     : 0;
   const [showGlow, setShowGlow] = useState(false);
+
   const [color] = useState(definedColor[0].value);
   const [secondColor] = useState("#000000");
   const [showDark, setShowDark] = useState(false);
@@ -63,6 +70,19 @@ export default function LetterPage() {
 
   // Flaga aby zapobiec resetowaniu wartości wybranych przez użytkownika
   const [isInitialized, setIsInitialized] = useState(false);
+
+  // Wyłącz przewijanie strony
+  useEffect(() => {
+    // Zapisz oryginalny styl overflow
+    const originalOverflow = document.body.style.overflow;
+    // Wyłącz przewijanie
+    document.body.style.overflow = "hidden";
+
+    // Przywróć oryginalny styl przy odmontowaniu
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, []);
 
   // Przetwarzanie danych ścieżki z PDF
   useEffect(() => {
@@ -94,26 +114,59 @@ export default function LetterPage() {
   };
 
   // Kalkulacja ceny - suma wszystkich wybranych opcji pomnożona przez długość
-  const calculatePrice = () => {
-    const prices = [
-      getPriceForOption("frontLetterOptions", frontLetter),
-      getPriceForOption("backLetterOptions", backLetter),
-      getPriceForOption("frontLetterAdditionalOptions", frontLetterAdd),
-      getPriceForOption("tapeDepthOptions", tapeDepth),
-      getPriceForOption("tapeModelOptions", tapeModel),
-      getPriceForOption("tapeColorOptions", tapeColor),
-      getPriceForOption("tapeColorOptions", tapeColor2), // drugi kolor
-      getPriceForOption("lightingOptions", lighting),
-      getPriceForOption("mountingOptions", mounting),
-      getPriceForOption("substructureOptions", substructure),
-      getPriceForOption("dimmerOptions", dimmer),
-    ];
 
-    const totalPricePerUnit = prices.reduce((sum, price) => sum + price, 0);
-    return (totalPricePerUnit * length) / 1000;
-  };
 
-  const totalPrice = calculatePrice();
+  // Przelicznik PDF pt -> mm
+  const PT_TO_MM = 25.4 / 72.0;
+
+  // Oblicz bbox dla aktualnego pathData
+  const bbox = useMemo(() => {
+    if (!pathData?.path?.items)
+      return null as null | {
+        widthMm: number;
+        heightMm: number;
+        areaMm2: number;
+      };
+    let minX = Infinity,
+      minY = Infinity,
+      maxX = -Infinity,
+      maxY = -Infinity;
+    for (const item of pathData.path.items as Array<[string, ...any[]]>) {
+      const points = item.slice(1);
+      for (const p of points) {
+        if (p?.type === "point") {
+          if (p.x < minX) minX = p.x;
+          if (p.y < minY) minY = p.y;
+          if (p.x > maxX) maxX = p.x;
+          if (p.y > maxY) maxY = p.y;
+        } else if (p?.type === "rect") {
+          if (p.x0 < minX) minX = p.x0;
+          if (p.y0 < minY) minY = p.y0;
+          if (p.x1 > maxX) maxX = p.x1;
+          if (p.y1 > maxY) maxY = p.y1;
+        }
+      }
+    }
+    if (
+      !isFinite(minX) ||
+      !isFinite(minY) ||
+      !isFinite(maxX) ||
+      !isFinite(maxY)
+    )
+      return null;
+    const widthPt = Math.max(0, maxX - minX);
+    const heightPt = Math.max(0, maxY - minY);
+    const areaPt2 = widthPt * heightPt;
+    const widthMm = widthPt * PT_TO_MM;
+    const heightMm = heightPt * PT_TO_MM;
+    const areaMm2 = areaPt2 * PT_TO_MM ** 2;
+    return { widthMm, heightMm, areaMm2 };
+  }, [pathData]);
+
+  const templateValue = useMemo(() => {
+    if (!bbox) return "";
+    return `${bbox.widthMm.toFixed(1)} x ${bbox.heightMm.toFixed(1)} mm`;
+  }, [bbox]);
 
   // Aktualizuj domyślne wartości gdy dane się załadują (tylko raz)
   useEffect(() => {
@@ -184,9 +237,29 @@ export default function LetterPage() {
       </div>
     );
   }
+    const calculatePrice = () => {
+      const prices = [
+        getPriceForOption("frontLetterOptions", frontLetter),
+        getPriceForOption("backLetterOptions", backLetter),
+        getPriceForOption("frontLetterAdditionalOptions", frontLetterAdd),
+        getPriceForOption("tapeDepthOptions", tapeDepth),
+        getPriceForOption("tapeModelOptions", tapeModel),
+        getPriceForOption("tapeColorOptions", tapeColor),
+        getPriceForOption("tapeColorOptions", tapeColor2), // drugi kolor
+        getPriceForOption("lightingOptions", lighting),
+        getPriceForOption("mountingOptions", mounting),
+        getPriceForOption("substructureOptions", substructure),
+        getPriceForOption("dimmerOptions", dimmer),
+      ];
+
+      const totalPricePerUnit = prices.reduce((sum, price) => sum + price, 0);
+      return (totalPricePerUnit * length) / 1000;
+    };
+
+    const totalPrice = calculatePrice();
 
   return (
-    <main className="flex h-screen w-screen flex-col lg:flex-row">
+    <main className="flex h-screen w-screen flex-col lg:flex-row overflow-hidden">
       {/* Panel kontrolny */}
       <div className="w-full lg:w-2/6 h-full bg-white mt-10 px-6 overflow-y-auto dark:bg-gray-900">
         <ScrollArea className="h-full">
@@ -226,153 +299,246 @@ export default function LetterPage() {
 
             {/* Wygląd */}
             <div>
-              <h3 className="text-lg font-semibold mb-4">Wygląd</h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label className="text-sm font-medium mb-2 block">
                     Front litery
                   </Label>
-                  <Select
-                    value={frontLetter}
-                    onValueChange={(value) => setFrontLetter(value)}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Wybierz typ" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {getOptionsByElementType("frontLetterOptions").map(
-                        (option) => (
-                          <SelectItem key={option.id} value={option.id}>
-                            {option.name}
-                          </SelectItem>
-                        )
-                      )}
-                    </SelectContent>
-                  </Select>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <Select
+                        value={frontLetter}
+                        onValueChange={(value) => setFrontLetter(value)}
+                      >
+                        <TooltipTrigger asChild>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Wybierz typ" />
+                          </SelectTrigger>
+                        </TooltipTrigger>
+                        <SelectContent>
+                          {getOptionsByElementType("frontLetterOptions").map(
+                            (option) => (
+                              <SelectItem key={option.id} value={option.id}>
+                                {option.name}
+                              </SelectItem>
+                            )
+                          )}
+                        </SelectContent>
+                      </Select>
+                      <TooltipContent
+                        className="bg-primary text-white"
+                        arrowClassName="bg-primary fill-primary"
+                      >
+                        {getOptionsByElementType("frontLetterOptions").find(
+                          (option) => option.id === frontLetter
+                        )?.description || "Brak opisu"}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
 
                 <div>
                   <Label className="text-sm font-medium mb-2 block">
                     Tył litery
                   </Label>
-                  <Select
-                    value={backLetter}
-                    onValueChange={(value) => setBackLetter(value)}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Wybierz typ" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {getOptionsByElementType("backLetterOptions").map(
-                        (option) => (
-                          <SelectItem key={option.id} value={option.id}>
-                            {option.name}
-                          </SelectItem>
-                        )
-                      )}
-                    </SelectContent>
-                  </Select>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <Select
+                        value={backLetter}
+                        onValueChange={(value) => setBackLetter(value)}
+                      >
+                        <TooltipTrigger asChild>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Wybierz typ" />
+                          </SelectTrigger>
+                        </TooltipTrigger>
+                        <SelectContent>
+                          {getOptionsByElementType("backLetterOptions").map(
+                            (option) => (
+                              <SelectItem key={option.id} value={option.id}>
+                                {option.name}
+                              </SelectItem>
+                            )
+                          )}
+                        </SelectContent>
+                      </Select>
+                      <TooltipContent
+                        className="bg-primary text-white"
+                        arrowClassName="bg-primary fill-primary"
+                      >
+                        <p>
+                          {getOptionsByElementType("backLetterOptions").find(
+                            (option) => option.id === backLetter
+                          )?.description || "Brak opisu"}
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
 
                 <div>
                   <Label className="text-sm font-medium mb-2 block">
-                    Dodatki
+                    Dodatki do lica
                   </Label>
-                  <Select
-                    value={frontLetterAdd}
-                    onValueChange={(value) => setFrontLetterAdd(value)}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Wybierz opcję" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {getOptionsByElementType(
-                        "frontLetterAdditionalOptions"
-                      ).map((option) => (
-                        <SelectItem key={option.id} value={option.id}>
-                          {option.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <Select
+                        value={frontLetterAdd}
+                        onValueChange={(value) => setFrontLetterAdd(value)}
+                      >
+                        <TooltipTrigger asChild>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Wybierz opcję" />
+                          </SelectTrigger>
+                        </TooltipTrigger>
+                        <SelectContent>
+                          {getOptionsByElementType(
+                            "frontLetterAdditionalOptions"
+                          ).map((option) => (
+                            <SelectItem key={option.id} value={option.id}>
+                              {option.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <TooltipContent
+                        className="bg-primary text-white"
+                        arrowClassName="bg-primary fill-primary"
+                      >
+                        <p>
+                          {getOptionsByElementType(
+                            "frontLetterAdditionalOptions"
+                          ).find((option) => option.id === frontLetterAdd)
+                            ?.description || "Brak opisu"}
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
 
                 <div>
                   <Label className="text-sm font-medium mb-2 block">
                     Głębokość taśmy
                   </Label>
-                  <Select
-                    value={tapeDepth}
-                    onValueChange={(value) => setTapeDepth(value)}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Wybierz głębokość" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {getOptionsByElementType("tapeDepthOptions").map(
-                        (option) => (
-                          <SelectItem key={option.id} value={option.id}>
-                            {option.name}
-                          </SelectItem>
-                        )
-                      )}
-                    </SelectContent>
-                  </Select>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <Select
+                        value={tapeDepth}
+                        onValueChange={(value) => setTapeDepth(value)}
+                      >
+                        <TooltipTrigger asChild>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Wybierz głębokość" />
+                          </SelectTrigger>
+                        </TooltipTrigger>
+                        <SelectContent>
+                          {getOptionsByElementType("tapeDepthOptions").map(
+                            (option) => (
+                              <SelectItem key={option.id} value={option.id}>
+                                {option.name}
+                              </SelectItem>
+                            )
+                          )}
+                        </SelectContent>
+                      </Select>
+                      <TooltipContent
+                        className="bg-primary text-white"
+                        arrowClassName="bg-primary fill-primary"
+                      >
+                        <p>
+                          {getOptionsByElementType("tapeDepthOptions").find(
+                            (option) => option.id === tapeDepth
+                          )?.description || "Brak opisu"}
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
               </div>
             </div>
 
             {/* Oświetlenie */}
             <div>
-              <h3 className="text-lg font-semibold mb-4">Oświetlenie</h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label className="text-sm font-medium mb-2 block">
                     Model taśmy
                   </Label>
-                  <Select
-                    value={tapeModel}
-                    onValueChange={(value) => setTapeModel(value)}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Wybierz model" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {getOptionsByElementType("tapeModelOptions").map(
-                        (option) => (
-                          <SelectItem key={option.id} value={option.id}>
-                            {option.name}
-                          </SelectItem>
-                        )
-                      )}
-                    </SelectContent>
-                  </Select>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <Select
+                        value={tapeModel}
+                        onValueChange={(value) => setTapeModel(value)}
+                      >
+                        <TooltipTrigger asChild>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Wybierz model" />
+                          </SelectTrigger>
+                        </TooltipTrigger>
+                        <SelectContent>
+                          {getOptionsByElementType("tapeModelOptions").map(
+                            (option) => (
+                              <SelectItem key={option.id} value={option.id}>
+                                {option.name}
+                              </SelectItem>
+                            )
+                          )}
+                        </SelectContent>
+                      </Select>
+                      <TooltipContent
+                        className="bg-primary text-white"
+                        arrowClassName="bg-primary fill-primary"
+                      >
+                        <p>
+                          {getOptionsByElementType("tapeModelOptions").find(
+                            (option) => option.id === tapeModel
+                          )?.description || "Brak opisu"}
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
 
                 <div>
                   <Label className="text-sm font-medium mb-2 block">
                     Kolor taśmy
                   </Label>
-                  <Select
-                    value={tapeColor}
-                    onValueChange={(value) => setTapeColor(value)}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Wybierz kolor" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {getOptionsByElementType("tapeColorOptions").map(
-                        (option) => (
-                          <SelectItem key={option.id} value={option.id}>
-                            {option.name}
-                          </SelectItem>
-                        )
-                      )}
-                    </SelectContent>
-                  </Select>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <Select
+                        value={tapeColor}
+                        onValueChange={(value) => setTapeColor(value)}
+                      >
+                        <TooltipTrigger asChild>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Wybierz kolor" />
+                          </SelectTrigger>
+                        </TooltipTrigger>
+                        <SelectContent>
+                          {getOptionsByElementType("tapeColorOptions").map(
+                            (option) => (
+                              <SelectItem key={option.id} value={option.id}>
+                                {option.name}
+                              </SelectItem>
+                            )
+                          )}
+                        </SelectContent>
+                      </Select>
+                      <TooltipContent
+                        className="bg-primary text-white"
+                        arrowClassName="bg-primary fill-primary"
+                      >
+                        <p>
+                          {getOptionsByElementType("tapeColorOptions").find(
+                            (option) => option.id === tapeColor
+                          )?.description || "Brak opisu"}
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
 
-                <div>
+                {/* <div>
                   <Label className="text-sm font-medium mb-2 block">
                     Kolor drugi
                   </Label>
@@ -393,109 +559,172 @@ export default function LetterPage() {
                       )}
                     </SelectContent>
                   </Select>
-                </div>
+                </div> */}
 
                 <div>
                   <Label className="text-sm font-medium mb-2 block">
-                    Typ oświetlenia
+                    Oświetlenie
                   </Label>
-                  <Select
-                    value={lighting}
-                    onValueChange={(value) => setLighting(value)}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Wybierz oświetlenie" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {getOptionsByElementType("lightingOptions").map(
-                        (option) => (
-                          <SelectItem key={option.id} value={option.id}>
-                            {option.name}
-                          </SelectItem>
-                        )
-                      )}
-                    </SelectContent>
-                  </Select>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <Select
+                        value={lighting}
+                        onValueChange={(value) => setLighting(value)}
+                      >
+                        <TooltipTrigger asChild>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Wybierz oświetlenie" />
+                          </SelectTrigger>
+                        </TooltipTrigger>
+                        <SelectContent>
+                          {getOptionsByElementType("lightingOptions").map(
+                            (option) => (
+                              <SelectItem key={option.id} value={option.id}>
+                                {option.name}
+                              </SelectItem>
+                            )
+                          )}
+                        </SelectContent>
+                      </Select>
+                      <TooltipContent
+                        className="bg-primary text-white"
+                        arrowClassName="bg-primary fill-primary"
+                      >
+                        <p>
+                          {getOptionsByElementType("lightingOptions").find(
+                            (option) => option.id === lighting
+                          )?.description || "Brak opisu"}
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
 
                 <div>
                   <Label className="text-sm font-medium mb-2 block">
                     Ściemniacz
                   </Label>
-                  <Select
-                    value={dimmer}
-                    onValueChange={(value) => setDimmer(value)}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Wybierz typ" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {getOptionsByElementType("dimmerOptions").map(
-                        (option) => (
-                          <SelectItem key={option.id} value={option.id}>
-                            {option.name}
-                          </SelectItem>
-                        )
-                      )}
-                    </SelectContent>
-                  </Select>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <Select
+                        value={dimmer}
+                        onValueChange={(value) => setDimmer(value)}
+                      >
+                        <TooltipTrigger asChild>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Wybierz typ" />
+                          </SelectTrigger>
+                        </TooltipTrigger>
+                        <SelectContent>
+                          {getOptionsByElementType("dimmerOptions").map(
+                            (option) => (
+                              <SelectItem key={option.id} value={option.id}>
+                                {option.name}
+                              </SelectItem>
+                            )
+                          )}
+                        </SelectContent>
+                      </Select>
+                      <TooltipContent
+                        className="bg-primary text-white"
+                        arrowClassName="bg-primary fill-primary"
+                      >
+                        <p>
+                          {getOptionsByElementType("dimmerOptions").find(
+                            (option) => option.id === dimmer
+                          )?.description || "Brak opisu"}
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
               </div>
             </div>
 
             {/* Montaż */}
             <div>
-              <h3 className="text-lg font-semibold mb-4">Montaż</h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label className="text-sm font-medium mb-2 block">
-                    Mocowanie
+                    Mocowanie do podkonstrukcji
                   </Label>
-                  <Select
-                    value={mounting}
-                    onValueChange={(value) => setMounting(value)}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Wybierz mocowanie" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {getOptionsByElementType("mountingOptions").map(
-                        (option) => (
-                          <SelectItem key={option.id} value={option.id}>
-                            {option.name}
-                          </SelectItem>
-                        )
-                      )}
-                    </SelectContent>
-                  </Select>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <Select
+                        value={mounting}
+                        onValueChange={(value) => setMounting(value)}
+                      >
+                        <TooltipTrigger asChild>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Wybierz mocowanie" />
+                          </SelectTrigger>
+                        </TooltipTrigger>
+                        <SelectContent>
+                          {getOptionsByElementType("mountingOptions").map(
+                            (option) => (
+                              <SelectItem key={option.id} value={option.id}>
+                                {option.name}
+                              </SelectItem>
+                            )
+                          )}
+                        </SelectContent>
+                      </Select>
+                      <TooltipContent
+                        className="bg-primary text-white"
+                        arrowClassName="bg-primary fill-primary"
+                      >
+                        <p>
+                          {getOptionsByElementType("mountingOptions").find(
+                            (option) => option.id === mounting
+                          )?.description || "Brak opisu"}
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
 
                 <div>
                   <Label className="text-sm font-medium mb-2 block">
-                    Materiał
+                    Podkonstrukcja
                   </Label>
-                  <Select
-                    value={substructure}
-                    onValueChange={(value) => setSubstructure(value)}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Wybierz materiał" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {getOptionsByElementType("substructureOptions").map(
-                        (option) => (
-                          <SelectItem key={option.id} value={option.id}>
-                            {option.name}
-                          </SelectItem>
-                        )
-                      )}
-                    </SelectContent>
-                  </Select>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <Select
+                        value={substructure}
+                        onValueChange={(value) => setSubstructure(value)}
+                      >
+                        <TooltipTrigger asChild>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Wybierz materiał" />
+                          </SelectTrigger>
+                        </TooltipTrigger>
+                        <SelectContent>
+                          {getOptionsByElementType("substructureOptions").map(
+                            (option) => (
+                              <SelectItem key={option.id} value={option.id}>
+                                {option.name}
+                              </SelectItem>
+                            )
+                          )}
+                        </SelectContent>
+                      </Select>
+                      <TooltipContent
+                        className="bg-primary text-white"
+                        arrowClassName="bg-primary fill-primary"
+                      >
+                        <p>
+                          {getOptionsByElementType("substructureOptions").find(
+                            (option) => option.id === substructure
+                          )?.description || "Brak opisu"}
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
 
                 <div>
                   <Label className="text-sm font-medium mb-2 block">
-                    Wymiar (cm)
+                    Wymiar podkonstrukcji (cm)
                   </Label>
                   <Input
                     type="number"
@@ -506,11 +735,14 @@ export default function LetterPage() {
 
                 <div>
                   <Label className="text-sm font-medium mb-2 block">
-                    Szablon
+                    Szablon wymiar
                   </Label>
                   <Input
+                    name="template"
                     type="text"
                     placeholder="Wybierz szablon"
+                    value={templateValue}
+                    readOnly
                     className="w-full"
                   />
                 </div>
@@ -556,7 +788,7 @@ export default function LetterPage() {
       </div>
 
       {/* Widok 3D */}
-      <div className="flex-1 h-full bg-[#D1D5DB] dark:bg-gray-800">
+      <div className="flex-1 h-screen bg-[#D1D5DB] dark:bg-gray-800">
         <Scene3D
           text={text}
           length={length}

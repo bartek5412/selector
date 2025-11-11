@@ -37,7 +37,7 @@ interface PathModelProps {
 
 export default function PathModel({
   pathData,
-  color = "#00ff00",
+  color = "#000000",
   height = 1,
 }: PathModelProps) {
   // Generowanie osobnych linii dla każdego elementu ścieżki

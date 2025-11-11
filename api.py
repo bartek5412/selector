@@ -129,327 +129,75 @@ def process_pdf():
         base64_img = base64.b64encode(img_buffer.getvalue()).decode('utf-8')
         img_data_url = f"data:image/png;base64,{base64_img}"
 
-        # 2. Wyodrębnij ścieżki i przekonwertuj je do formatu JSON z lepszą obsługą dziur
+        # 2. Wyodrębnij ścieżki i przekonwertuj je do formatu JSON
         raw_paths = page.get_drawings()
         json_paths = []
-        
+        # Zmienne do obliczenia zbiorczego prostokąta otaczającego cały napis
+        min_x, min_y = float('inf'), float('inf')
+        max_x, max_y = float('-inf'), float('-inf')
         for path in raw_paths:
             items = []
-            # Konwertuj rect na słownik jeśli istnieje
-            rect_data = None
-            if path.get('rect'):
-                rect = path.get('rect')
-                rect_data = {
-                    'x0': rect.x0,
-                    'y0': rect.y0,
-                    'x1': rect.x1,
-                    'y1': rect.y1
-                }
-            
-            path_info = {
-                'items': items,
-                'fill': path.get('fill', True),  # Informacja o wypełnieniu
-                'stroke': path.get('stroke', False),  # Informacja o obrysie
-                'evenodd': path.get('evenodd', False),  # Reguła wypełnienia evenodd
-                'closePath': path.get('closePath', False),  # Czy ścieżka jest domknięta
-                'rect': rect_data,  # Prostokąt ograniczający ścieżkę
-            }
-            
-            
             for item in path.get("items", []):
-                try:
-                    cmd = item[0]
-                    points_data = []
-                    for p in item[1:]:
-                        if isinstance(p, fitz.Point):
-                            points_data.append({'type': 'point', 'x': p.x, 'y': p.y})
-                        elif isinstance(p, fitz.Rect):
-                            points_data.append({'type': 'rect', 'x0': p.x0, 'y0': p.y0, 'x1': p.x1, 'y1': p.y1})
-                        else:
-                            # Obsługa innych typów punktów - pomiń nieznane typy
-                            continue
-                    items.append([cmd, *points_data])
-                except Exception as e:
-                    print(f"Błąd podczas przetwarzania elementu ścieżki: {e}")
-                    print(f"Problemowy element: {item}")
-                    continue
-            
-            # Dodaj informację o domknięciu ścieżki jeśli nie jest domknięta
-            if items and not path_info['closePath']:
-                try:
-                    # Sprawdź czy ostatni punkt jest taki sam jak pierwszy
-                    if len(items) > 0:
-                        first_item = items[0]
-                        last_item = items[-1]
-                        
-                        # Jeśli pierwszy element to "m" (moveTo), sprawdź czy ostatni element kończy się w tym samym miejscu
-                        if first_item[0] == "m" and len(first_item) > 1 and len(last_item) > 1:
-                            first_point = first_item[1]
-                            last_point = last_item[-1] if last_item[0] in ["l", "c", "v", "y"] else last_item[1]
-                            
-                            if (first_point['type'] == 'point' and last_point['type'] == 'point' and
-                                abs(first_point['x'] - last_point['x']) < 0.1 and
-                                abs(first_point['y'] - last_point['y']) < 0.1):
-                                path_info['closePath'] = True
-                except Exception as e:
-                    print(f"Błąd podczas sprawdzania domknięcia ścieżki: {e}")
-                    # Kontynuuj bez sprawdzania domknięcia
-            
-            json_paths.append(path_info)
+                cmd = item[0]
+                points_data = []
+                for p in item[1:]:
+                    if isinstance(p, fitz.Point):
+                        points_data.append({'type': 'point', 'x': p.x, 'y': p.y})
+                        # Aktualizuj granice prostokąta
+                        if p.x < min_x: min_x = p.x
+                        if p.y < min_y: min_y = p.y
+                        if p.x > max_x: max_x = p.x
+                        if p.y > max_y: max_y = p.y
+                    elif isinstance(p, fitz.Rect):
+                        points_data.append({'type': 'rect', 'x0': p.x0, 'y0': p.y0, 'x1': p.x1, 'y1': p.y1})
+                        # Aktualizuj granice prostokąta dla prostokąta PDF
+                        if p.x0 < min_x: min_x = p.x0
+                        if p.y0 < min_y: min_y = p.y0
+                        if p.x1 > max_x: max_x = p.x1
+                        if p.y1 > max_y: max_y = p.y1
+                items.append([cmd, *points_data])
+            json_paths.append({'items': items})
 
-        # 3. Zwróć dane do frontendu
+        # 3. Oblicz prostokąt otaczający i jego wymiary/pole
+        has_bbox = (min_x != float('inf') and min_y != float('inf') and max_x != float('-inf') and max_y != float('-inf'))
+        bbox = None
+        if has_bbox:
+            width_pt = max(0.0, max_x - min_x)
+            height_pt = max(0.0, max_y - min_y)
+            area_pt2 = width_pt * height_pt
+            width_mm = width_pt * PT_TO_MM
+            height_mm = height_pt * PT_TO_MM
+            area_mm2 = area_pt2 * (PT_TO_MM ** 2)
+            bbox = {
+                "x0": min_x,
+                "y0": min_y,
+                "x1": max_x,
+                "y1": max_y,
+                "width_pt": width_pt,
+                "height_pt": height_pt,
+                "area_pt2": area_pt2,
+                "width_mm": width_mm,
+                "height_mm": height_mm,
+                "area_mm2": area_mm2
+            }
+
+        # 4. Zwróć dane do frontendu
         return jsonify({
             "pageImage": img_data_url,
             "paths": json_paths,
-            "pageDimensions": {"width": page.rect.width, "height": page.rect.height}
+            "pageDimensions": {"width": page.rect.width, "height": page.rect.height},
+            "textBoundingBox": bbox
+
         })
+        
 
     except Exception as e:
         # Zwróć błąd serwera z informacją diagnostyczną
-        import traceback
-        print(f"Błąd podczas przetwarzania PDF: {str(e)}")
-        print(f"Traceback: {traceback.format_exc()}")
         return jsonify({"error": f"An error occurred: {str(e)}"}), 500
 
 
 # =============================================================================
-# ENDPOINT 2: PRZETWARZANIE ŚCIEŻKI Z OBSŁUGĄ DZIUR
-# =============================================================================
-
-@app.route("/api/process-path", methods=["POST"])
-def process_path():
-    """
-    Przyjmuje dane ścieżki i zwraca przetworzoną ścieżkę z obsługą dziur
-    i lepszą geometrią dla modelowania 3D.
-    """
-    data = request.get_json()
-    path_data = data.get('path')
-    
-    if not path_data:
-        return jsonify({"error": "Missing path data"}), 400
-    
-    try:
-        # Przetwórz ścieżkę z obsługą dziur i złożonych kształtów
-        processed_path = process_path_with_holes(path_data)
-        
-        return jsonify({
-            "processedPath": processed_path,
-            "hasHoles": processed_path.get('hasHoles', False),
-            "isClosed": processed_path.get('isClosed', False),
-            "complexity": processed_path.get('complexity', 'simple')
-        })
-        
-    except Exception as e:
-        return jsonify({"error": f"An error occurred: {str(e)}"}), 500
-
-def process_path_with_holes(path_data):
-    """
-    Przetwarza ścieżkę z obsługą dziur i złożonych kształtów.
-    """
-    items = path_data.get('items', [])
-    fill = path_data.get('fill', True)
-    evenodd = path_data.get('evenodd', False)
-    
-    # Analizuj ścieżkę aby wykryć dziury
-    has_holes = detect_holes(items, evenodd)
-    
-    # Sprawdź czy ścieżka jest domknięta
-    is_closed = check_path_closure(items)
-    
-    # Określ złożoność ścieżki
-    complexity = determine_complexity(items, has_holes)
-    
-    # Przetwórz elementy ścieżki
-    processed_items = []
-    for item in items:
-        cmd = item[0]
-        points = item[1:]
-        
-        if cmd == "l":  # Linia
-            processed_items.append(process_line(points))
-        elif cmd == "c":  # Krzywa Béziera
-            processed_items.append(process_bezier(points))
-        elif cmd == "re":  # Prostokąt
-            processed_items.append(process_rectangle(points))
-        elif cmd == "m":  # MoveTo
-            processed_items.append(process_moveto(points))
-        else:
-            processed_items.append(item)
-    
-    return {
-        'items': processed_items,
-        'hasHoles': has_holes,
-        'isClosed': is_closed,
-        'complexity': complexity,
-        'fill': fill,
-        'evenodd': evenodd
-    }
-
-def detect_holes(items, evenodd):
-    """
-    Wykrywa czy ścieżka ma dziury na podstawie analizy geometrii.
-    """
-    if not items:
-        return False
-    
-    # Prosta heurystyka - jeśli mamy wiele niezależnych konturów,
-    # prawdopodobnie są to dziury
-    contour_count = 0
-    for item in items:
-        if item[0] == "m":  # MoveTo oznacza nowy kontur
-            contour_count += 1
-    
-    return contour_count > 1 or evenodd
-
-def check_path_closure(items):
-    """
-    Sprawdza czy ścieżka jest domknięta.
-    """
-    if len(items) < 2:
-        return False
-    
-    first_item = items[0]
-    last_item = items[-1]
-    
-    if first_item[0] == "m" and len(first_item) > 1:
-        first_point = first_item[1]
-        
-        # Znajdź ostatni punkt w ostatnim elemencie
-        last_point = None
-        if last_item[0] in ["l", "c", "v", "y"] and len(last_item) > 1:
-            last_point = last_item[-1]
-        elif len(last_item) > 1:
-            last_point = last_item[1]
-        
-        if last_point and first_point['type'] == 'point' and last_point['type'] == 'point':
-            # Sprawdź czy punkty są blisko siebie
-            distance = math.sqrt(
-                (first_point['x'] - last_point['x'])**2 + 
-                (first_point['y'] - last_point['y'])**2
-            )
-            return distance < 1.0  # Tolerancja 1 punkt
-    
-    return False
-
-def determine_complexity(items, has_holes):
-    """
-    Określa złożoność ścieżki.
-    """
-    if has_holes:
-        return "complex"
-    
-    bezier_count = sum(1 for item in items if item[0] == "c")
-    if bezier_count > 5:
-        return "complex"
-    elif bezier_count > 0:
-        return "moderate"
-    else:
-        return "simple"
-
-def process_line(points):
-    """
-    Przetwarza element linii.
-    """
-    if len(points) >= 2:
-        p1, p2 = points[0], points[1]
-        return ["l", p1, p2]
-    return ["l", *points]
-
-def process_bezier(points):
-    """
-    Przetwarza element krzywej Béziera.
-    """
-    if len(points) >= 4:
-        return ["c", *points[:4]]
-    return ["c", *points]
-
-def process_rectangle(points):
-    """
-    Przetwarza element prostokąta.
-    """
-    if len(points) >= 1:
-        return ["re", points[0]]
-    return ["re", *points]
-
-def process_moveto(points):
-    """
-    Przetwarza element MoveTo.
-    """
-    if len(points) >= 1:
-        return ["m", points[0]]
-    return ["m", *points]
-
-def validate_path(path_data):
-    """
-    Waliduje ścieżkę i zwraca informacje o problemach.
-    """
-    issues = []
-    warnings = []
-    
-    items = path_data.get('items', [])
-    
-    if not items:
-        issues.append("Ścieżka nie zawiera żadnych elementów")
-        return {"valid": False, "issues": issues, "warnings": warnings}
-    
-    # Sprawdź czy ścieżka ma elementy MoveTo
-    has_moveto = any(item[0] == "m" for item in items)
-    if not has_moveto:
-        warnings.append("Ścieżka nie zaczyna się od MoveTo - może być problem z pozycjonowaniem")
-    
-    # Sprawdź czy ścieżka jest domknięta
-    is_closed = check_path_closure(items)
-    if not is_closed:
-        warnings.append("Ścieżka nie jest domknięta - może powodować problemy w renderowaniu 3D")
-    
-    # Sprawdź czy ścieżka ma dziury
-    has_holes = detect_holes(items, path_data.get('evenodd', False))
-    if has_holes:
-        warnings.append("Ścieżka ma dziury - wymaga specjalnej obsługi w modelowaniu 3D")
-    
-    # Sprawdź czy ścieżka ma wystarczającą liczbę punktów
-    total_points = sum(len(item) - 1 for item in items if len(item) > 1)
-    if total_points < 3:
-        issues.append("Ścieżka ma za mało punktów do poprawnego renderowania")
-    
-    # Sprawdź czy ścieżka ma krzywe Béziera
-    bezier_count = sum(1 for item in items if item[0] == "c")
-    if bezier_count > 10:
-        warnings.append("Ścieżka ma wiele krzywych Béziera - może być trudna do renderowania")
-    
-    return {
-        "valid": len(issues) == 0,
-        "issues": issues,
-        "warnings": warnings,
-        "is_closed": is_closed,
-        "has_holes": has_holes,
-        "complexity": determine_complexity(items, has_holes)
-    }
-
-# =============================================================================
-# ENDPOINT 3: WALIDACJA ŚCIEŻEK
-# =============================================================================
-
-@app.route("/api/validate-path", methods=["POST"])
-def validate_path_endpoint():
-    """
-    Waliduje ścieżkę i zwraca informacje o problemach.
-    """
-    data = request.get_json()
-    path_data = data.get('path')
-    
-    if not path_data:
-        return jsonify({"error": "Missing path data"}), 400
-    
-    try:
-        validation_result = validate_path(path_data)
-        return jsonify(validation_result)
-        
-    except Exception as e:
-        return jsonify({"error": f"An error occurred: {str(e)}"}), 500
-
-# =============================================================================
-# ENDPOINT 4: OBLICZANIE DŁUGOŚCI NA PODSTAWIE KLIKNIĘCIA
+# ENDPOINT 2: OBLICZANIE DŁUGOŚCI NA PODSTAWIE KLIKNIĘCIA
 # =============================================================================
 
 @app.route("/api/get-length", methods=["POST"])
@@ -477,10 +225,6 @@ def get_length():
         if not path_json.get("items"):
             continue
 
-        # Sprawdź czy ścieżka ma dziury - jeśli tak, może być bardziej skomplikowana
-        has_holes = path_json.get("hasHoles", False)
-        is_closed = path_json.get("isClosed", False)
-        
         for item_json in path_json["items"]:
             cmd = item_json[0]
             points_json = item_json[1:]
@@ -537,17 +281,9 @@ def get_length():
         length_pt = calculate_path_length(path_data_fitz)
         length_mm = length_pt * PT_TO_MM
 
-        # Dodaj informacje o ścieżce i walidację
-        selected_path = paths_json[closest_path_idx]
-        validation_result = validate_path(selected_path)
-        
         return jsonify({
             "closestPathIndex": closest_path_idx,
-            "length_mm": length_mm,
-            "hasHoles": selected_path.get("hasHoles", False),
-            "isClosed": selected_path.get("isClosed", False),
-            "complexity": selected_path.get("complexity", "simple"),
-            "validation": validation_result
+            "length_mm": length_mm
         })
     else:
         # Nie znaleziono ścieżki wystarczająco blisko
