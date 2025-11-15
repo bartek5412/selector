@@ -8,6 +8,8 @@ import { KernelSize } from "postprocessing";
 import SvgModel from "./SvgModel";
 import PathModel from "./PathModel";
 import { Card } from "@/components/ui/card";
+import { MojDokumentPDF } from "@/app/pdf-viewer/document";
+import { PDFDownloadLink } from "@react-pdf/renderer";
 
 // Komponent do wyświetlania pozycji kamery
 function CameraPosition() {
@@ -200,7 +202,7 @@ export default function Scene3D({
                 <p>
                   Powierzchnia:{" "}
                   <span className="font-medium">
-                    {(bbox.areaMm2/10000).toFixed(2)} m²
+                    {(bbox.areaMm2 / 10000).toFixed(2)} m²
                   </span>
                 </p>
               </div>
@@ -213,6 +215,22 @@ export default function Scene3D({
                 </span>
               </p>
             </div>
+            <PDFDownloadLink
+              document={<MojDokumentPDF />}
+              fileName="faktura-test.pdf"
+            >
+              {/* Używamy "children as a function", aby uzyskać dostęp 
+      do stanu 'loading' i dezaktywować przycisk podczas generowania.
+    */}
+              {({ loading }) => (
+                <button
+                  className="bg-primary hover:bg-primary/90 text-white text-md p-2 rounded-lg font-bold w-full mt-4"
+                  disabled={loading}
+                >
+                  {loading ? "Generowanie..." : "Wygeneruj ofertę PDF"}
+                </button>
+              )}
+            </PDFDownloadLink>
           </div>
         </div>
       </Card>

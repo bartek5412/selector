@@ -9,7 +9,7 @@ import { useLetters } from "@/hooks/useLetters";
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { SelectTrigger } from "@/components/ui/select";
+import { Font } from "@react-pdf/renderer";
 
 export default function LetterSettingsPage() {
   const {
@@ -114,6 +115,7 @@ export default function LetterSettingsPage() {
       );
     }
   };
+
 
   // Tworzenie kolumn z funkcjami edycji
   const columns = createEditableColumns(handleSave, handleSave, handleDelete);
@@ -342,7 +344,6 @@ export default function LetterSettingsPage() {
                   <SelectItem value="kpl">kpl</SelectItem>
                 </SelectContent>
               </Select>
-
             </div>
             <div className="w-full">
               <button
