@@ -257,6 +257,7 @@ export default function LetterPage() {
     };
 
     const totalPrice = calculatePrice();
+    const totalData = {tapeType: tapeModel}
 
   return (
     <main className="flex h-screen w-screen flex-col lg:flex-row overflow-hidden">
@@ -790,6 +791,7 @@ export default function LetterPage() {
       {/* Widok 3D */}
       <div className="flex-1 h-screen bg-[#D1D5DB] dark:bg-gray-800">
         <Scene3D
+          offerData={totalData}
           text={text}
           length={length}
           depth={depth}

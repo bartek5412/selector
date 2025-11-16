@@ -56,7 +56,7 @@
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.163 0.017 256.8);
   /* Leśna Zieleń #059669 - główny akcent */
-  --primary: oklch(0.559 0.145 166.5);
+  --primary: #008e61;
   --primary-foreground: oklch(1 0 0);
   /* Jasnoszary - secondary */
   --secondary: oklch(0.937 0.002 264.5);

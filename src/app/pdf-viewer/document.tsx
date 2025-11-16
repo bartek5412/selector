@@ -89,8 +89,9 @@ const styles = StyleSheet.create({
     border: "1px solid #e0e0e0",
   },
   tableHeader: {
+    // color: "white",
     flexDirection: "row",
-    backgroundColor: "#f0f0f0",
+    backgroundColor: "#00e39b",
     borderBottomWidth: 1,
     borderBottomColor: "#e0e0e0",
   },
@@ -144,7 +145,7 @@ const styles = StyleSheet.create({
   summaryTotal: {
     fontWeight: "bold",
     fontSize: 12,
-    backgroundColor: "#f0f0f0",
+    backgroundColor: "#00e39b",
   },
   // 6. Stopka
   footer: {
@@ -177,17 +178,12 @@ const day = String(today.getDate()).padStart(2, "0");
 // (Zauważ też literówkę: "mounth" -> "month")
 const fullDate = `OF/${year}/${month}/${day}`;
 const daneOferty = {
-  numer: fullDate ,
+  numer: fullDate,
   dataWystawienia: new Date().toLocaleDateString("pl-PL"),
-  klient: {
-    nazwa: "Przykładowa Firma Sp. z o.o.",
-    adres: "ul. Testowa 1, 00-001 Warszawa",
-    email: "kontakt@firma.pl",
-  },
   napis: "FRAKTO",
   // Zamiast `imagePlaceholder` możesz tu wstawić komponent <Image src={props.urlObrazka} />
   obrazek: null,
-
+  vat: 23,
   komponenty: [
     {
       id: 1,
@@ -213,7 +209,7 @@ const obliczSume = (items) =>
 const formatWaluty = (wartosc) => `${wartosc.toFixed(2).replace(".", ",")} PLN`;
 
 // --- Komponent Dokumentu ---
-export const MojDokumentPDF = () => {
+export const MojDokumentPDF = ({offerData}) => {
   const sumaNetto = obliczSume(daneOferty.komponenty);
   const podatekVat = sumaNetto * 0.23;
   const sumaBrutto = sumaNetto + podatekVat;
@@ -225,9 +221,7 @@ export const MojDokumentPDF = () => {
         <View style={styles.header}>
           <View>
             <Text style={styles.companyName}>TWOJA FIRMA</Text>
-            <Text style={{ fontSize: 10, color: "#555" }}>
-              Specjaliści od Liter 3D
-            </Text>
+            <Text style={{ fontSize: 10, color: "#555" }}>Description</Text>
           </View>
           <View style={styles.headerInfo}>
             <Text>ul. Twoja 123</Text>
@@ -248,12 +242,12 @@ export const MojDokumentPDF = () => {
               Data: {daneOferty.dataWystawienia}
             </Text>
           </View>
-          <View style={styles.clientInfo}>
+          {/* <View style={styles.clientInfo}>
             <Text style={{ fontWeight: "bold", marginBottom: 5 }}>Dla:</Text>
             <Text>{daneOferty.klient.nazwa}</Text>
             <Text>{daneOferty.klient.adres}</Text>
             <Text>{daneOferty.klient.email}</Text>
-          </View>
+          </View> */}
         </View>
 
         {/* === 3. PODGLĄD NAPISU (obrazek) === */}
@@ -277,19 +271,8 @@ export const MojDokumentPDF = () => {
               Komponent / Opis
             </Text>
             <Text style={{ ...styles.tableColHeader, ...styles.colQty }}>
-              Ilość
-            </Text>
-            <Text style={{ ...styles.tableColHeader, ...styles.colPrice }}>
-              Cena jedn. (netto)
-            </Text>
-            <Text
-              style={{
-                ...styles.tableColHeader,
-                ...styles.colTotal,
-                borderRightWidth: 0,
-              }}
-            >
-              Wartość (netto)
+              {/* Ilość */}
+              {offerData.tapeType}
             </Text>
           </View>
           {/* Wiersze tabeli */}
@@ -300,18 +283,6 @@ export const MojDokumentPDF = () => {
               </Text>
               <Text style={{ ...styles.tableCol, ...styles.colQty }}>
                 {item.ilosc}
-              </Text>
-              <Text style={{ ...styles.tableCol, ...styles.colPrice }}>
-                {formatWaluty(item.cenaJedn)}
-              </Text>
-              <Text
-                style={{
-                  ...styles.tableCol,
-                  ...styles.colTotal,
-                  borderRightWidth: 0,
-                }}
-              >
-                {formatWaluty(item.ilosc * item.cenaJedn)}
               </Text>
             </View>
           ))}
@@ -325,7 +296,9 @@ export const MojDokumentPDF = () => {
               <Text style={styles.summaryValue}>{formatWaluty(sumaNetto)}</Text>
             </View>
             <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Podatek VAT (23%):</Text>
+              <Text style={styles.summaryLabel}>
+                Podatek VAT ({daneOferty.vat}%):
+              </Text>
               <Text style={styles.summaryValue}>
                 {formatWaluty(podatekVat)}
               </Text>
@@ -348,8 +321,8 @@ export const MojDokumentPDF = () => {
         {/* === 6. STOPKA (Notka) === */}
         <Text style={styles.footer}>
           Oferta jest ważna przez 30 dni od daty wystawienia. Podane ceny są
-          cenami netto, do których należy doliczyć podatek VAT (23%). Czas
-          realizacji: 14 dni roboczych od momentu akceptacji oferty.
+          cenami netto, do których należy doliczyć podatek VAT ({daneOferty.vat}
+          %). Czas realizacji: 14 dni roboczych od momentu akceptacji oferty.
         </Text>
       </Page>
     </Document>

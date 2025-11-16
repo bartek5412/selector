@@ -44,9 +44,13 @@ interface SceneProps {
   tapeDepth: number;
   totalPrice: number;
   pathData: any | null;
+  offerData: {
+    tapeType: string;
+  }
 }
 
 export default function Scene3D({
+  offerData,
   text,
   length,
   depth,
@@ -130,13 +134,13 @@ export default function Scene3D({
             // Jeśli mamy dane ścieżki z PDF, renderuj model ścieżki
             <PathModel
               pathData={pathData}
-              text={text}
-              depth={depth}
+              //text={text}
+             // depth={depth}
               color={"#000000"}
-              secondColor={secondColor}
-              x={x}
-              y={y}
-              showRods={showRods}
+             // secondColor={secondColor}
+             // x={x}
+             // y={y}
+             // showRods={showRods}
             />
           ) : svgData ? (
             // Jeśli mamy dane SVG, renderuj model SVG
@@ -216,7 +220,7 @@ export default function Scene3D({
               </p>
             </div>
             <PDFDownloadLink
-              document={<MojDokumentPDF />}
+              document={<MojDokumentPDF offerData={offerData}/>}
               fileName="faktura-test.pdf"
             >
               {/* Używamy "children as a function", aby uzyskać dostęp 
