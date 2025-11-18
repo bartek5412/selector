@@ -26,6 +26,21 @@ function CameraPosition() {
   return null;
 }
 
+interface OfferComponent {
+  category: string;
+  name: string;
+  price: number;
+}
+
+interface DetailedOfferData {
+  components: OfferComponent[];
+  totalLength: number;
+  text: string;
+  dimensions: string;
+  finalPrice: number;
+  creationDate: string;
+}
+
 // Definiujemy typy dla propsów
 interface SceneProps {
   text: string;
@@ -44,9 +59,7 @@ interface SceneProps {
   tapeDepth: number;
   totalPrice: number;
   pathData: any | null;
-  offerData: {
-    tapeType: string;
-  }
+  offerData: DetailedOfferData;
 }
 
 export default function Scene3D({
@@ -213,7 +226,7 @@ export default function Scene3D({
             )}
             <div className="pt-2 border-t border-gray-200">
               <p className="text-sm font-semibold text-[#111827]">
-                Cena:{" "}
+                Cena netto:{" "}
                 <span className="text-green-600">
                   {totalPrice.toFixed(2)} zł
                 </span>

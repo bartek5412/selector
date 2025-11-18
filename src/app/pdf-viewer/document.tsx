@@ -162,130 +162,99 @@ const styles = StyleSheet.create({
   },
 });
 
-// --- Przykładowe dane ---
-// (Tutaj w przyszłości przekażesz propsy)
-const today = new Date();
-const year = today.getFullYear();
-
-// Poprawka 1: getMonth() jest 0-11, więc dodajemy +1
-// Używamy padStart, aby dodać "0" dla miesięcy 1-9 (np. "09")
-const month = String(today.getMonth() + 1).padStart(2, "0");
-
-// Poprawka 2: Użyj getDate() aby pobrać dzień miesiąca (1-31)
-// Również dodajemy padStart dla dni 1-9
-const day = String(today.getDate()).padStart(2, "0");
-
-// (Zauważ też literówkę: "mounth" -> "month")
-const fullDate = `OF/${year}/${month}/${day}`;
-const daneOferty = {
-  numer: fullDate,
-  dataWystawienia: new Date().toLocaleDateString("pl-PL"),
-  napis: "FRAKTO",
-  // Zamiast `imagePlaceholder` możesz tu wstawić komponent <Image src={props.urlObrazka} />
-  obrazek: null,
-  vat: 23,
-  komponenty: [
-    {
-      id: 1,
-      opis: "Litera 3D, Lico Plexi (Kolor: Biały Połysk)",
-      ilosc: 6,
-      cenaJedn: 150.0,
-    },
-    { id: 2, opis: "Tył litery: PCV 10mm (Twarde)", ilosc: 6, cenaJedn: 45.0 },
-    {
-      id: 3,
-      opis: "Podświetlenie: Moduły LED (Barwa: Zimna Biel)",
-      ilosc: 6,
-      cenaJedn: 80.0,
-    },
-    { id: 4, opis: "Zasilacz hermetyczny 150W", ilosc: 1, cenaJedn: 120.0 },
-    { id: 5, opis: "Montaż na dystansach", ilosc: 1, cenaJedn: 250.0 },
-  ],
-};
-
-const obliczSume = (items) =>
-  items.reduce((acc, item) => acc + item.ilosc * item.cenaJedn, 0);
-
-const formatWaluty = (wartosc) => `${wartosc.toFixed(2).replace(".", ",")} PLN`;
+// Funkcja formatująca walutę
+const formatWaluty = (wartosc: number) => 
+  `${wartosc.toFixed(2).replace(".", ",")} PLN`;
 
 // --- Komponent Dokumentu ---
-export const MojDokumentPDF = ({offerData}) => {
-  const sumaNetto = obliczSume(daneOferty.komponenty);
+// Definiujemy typ propsów dla pewności (opcjonalne, jeśli używasz JS, pomiń interface)
+interface OfferProps {
+  offerData: {
+    components: Array<{ category: string; name: string; price: number }>;
+    totalLength: number; // w mm
+    text: string;
+    finalPrice: number;
+    creationDate: string;
+    dimensions: string;
+  };
+}
+
+export const MojDokumentPDF = ({ offerData }: OfferProps) => {
+  // Obliczenia
+  // UWAGA: Logika ceny zależy od Twojego biznesu. 
+  // W page.tsx liczysz: (suma opcji * długość) / 1000.
+  // Tutaj wyświetlimy ceny jednostkowe opcji, a na dole sumę wyliczoną w page.tsx.
+  
+  const sumaNetto = offerData.finalPrice;
   const podatekVat = sumaNetto * 0.23;
   const sumaBrutto = sumaNetto + podatekVat;
+  const dlugoscMetry = offerData.totalLength / 1000;
 
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        {/* === 1. NAGŁÓWEK (Twoja firma) === */}
+        {/* === 1. NAGŁÓWEK === */}
         <View style={styles.header}>
           <View>
             <Text style={styles.companyName}>TWOJA FIRMA</Text>
-            <Text style={{ fontSize: 10, color: "#555" }}>Description</Text>
+            <Text style={{ fontSize: 10, color: "#555" }}>Producent Reklam 3D</Text>
           </View>
           <View style={styles.headerInfo}>
-            <Text>ul. Twoja 123</Text>
-            <Text>00-000 Miasto</Text>
-            <Text>email: biuro@twojafirma.pl</Text>
-            <Text>tel: 123 456 789</Text>
+            <Text>Data: {offerData.creationDate}</Text>
+            <Text>Projekt: {offerData.text}</Text>
           </View>
         </View>
 
-        {/* === 2. TYTUŁ I KLIENT === */}
+        {/* === 2. TYTUŁ === */}
         <View style={styles.titleSection}>
           <View>
-            <Text style={styles.title}>Oferta Handlowa</Text>
-            <Text style={{ fontSize: 11, marginBottom: 5 }}>
-              Numer: {daneOferty.numer}
-            </Text>
-            <Text style={{ fontSize: 11 }}>
-              Data: {daneOferty.dataWystawienia}
-            </Text>
+            <Text style={styles.title}>Specyfikacja zamówienia</Text>
+            <Text style={{ fontSize: 11 }}>Wymiary całkowite: {offerData.dimensions}</Text>
+            <Text style={{ fontSize: 11 }}>Długość obrysu (do wyceny): {offerData.totalLength.toFixed(0)} mm</Text>
           </View>
-          {/* <View style={styles.clientInfo}>
-            <Text style={{ fontWeight: "bold", marginBottom: 5 }}>Dla:</Text>
-            <Text>{daneOferty.klient.nazwa}</Text>
-            <Text>{daneOferty.klient.adres}</Text>
-            <Text>{daneOferty.klient.email}</Text>
-          </View> */}
         </View>
 
-        {/* === 3. PODGLĄD NAPISU (obrazek) === */}
-        <Text style={styles.sectionTitle}>Podgląd projektu</Text>
-        {daneOferty.obrazek ? (
-          <Image src={daneOferty.obrazek} style={styles.imagePlaceholder} />
-        ) : (
-          <View style={styles.imagePlaceholder}>
-            <Text style={styles.imagePlaceholderText}>
-              [ Tu pojawi się obrazek z podglądem napisu "{daneOferty.napis}" ]
-            </Text>
-          </View>
-        )}
-
-        {/* === 4. SPECYFIKACJA (Tabela) === */}
-        <Text style={styles.sectionTitle}>Szczegółowa specyfikacja</Text>
+        {/* === 4. SPECYFIKACJA (Tabela dynamiczna) === */}
+        <Text style={styles.sectionTitle}>Wybrane komponenty</Text>
         <View style={styles.table}>
-          {/* Nagłówek tabeli */}
           <View style={styles.tableHeader}>
             <Text style={{ ...styles.tableColHeader, ...styles.colDesc }}>
-              Komponent / Opis
+              Kategoria / Opcja
             </Text>
             <Text style={{ ...styles.tableColHeader, ...styles.colQty }}>
-              {/* Ilość */}
-              {offerData.tapeType}
+              Ilość
+            </Text>
+            <Text style={{ ...styles.tableColHeader, ...styles.colPrice }}>
+              Cena bazowa
             </Text>
           </View>
-          {/* Wiersze tabeli */}
-          {daneOferty.komponenty.map((item) => (
-            <View key={item.id} style={styles.tableRow}>
+          
+          {/* Mapujemy po przekazanych komponentach */}
+          {offerData.components.map((item, index) => (
+            <View key={index} style={styles.tableRow}>
               <Text style={{ ...styles.tableCol, ...styles.colDesc }}>
-                {item.opis}
+                {item.category}: {item.name}
               </Text>
               <Text style={{ ...styles.tableCol, ...styles.colQty }}>
-                {item.ilosc}
+                1
+              </Text>
+              <Text style={{ ...styles.tableCol, ...styles.colPrice }}>
+                {formatWaluty(item.price)}
               </Text>
             </View>
           ))}
+           {/* Wiersz z mnożnikiem długości */}
+           <View style={styles.tableRow}>
+              <Text style={{ ...styles.tableCol, ...styles.colDesc}}>
+                Mnożnik długości obrysu (metry)
+              </Text>
+              <Text style={{ ...styles.tableCol, ...styles.colQty }}>
+                {dlugoscMetry.toFixed(3)} m
+              </Text>
+              <Text style={{ ...styles.tableCol, ...styles.colPrice }}>
+                -
+              </Text>
+            </View>
         </View>
 
         {/* === 5. PODSUMOWANIE CENY === */}
@@ -296,12 +265,8 @@ export const MojDokumentPDF = ({offerData}) => {
               <Text style={styles.summaryValue}>{formatWaluty(sumaNetto)}</Text>
             </View>
             <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>
-                Podatek VAT ({daneOferty.vat}%):
-              </Text>
-              <Text style={styles.summaryValue}>
-                {formatWaluty(podatekVat)}
-              </Text>
+              <Text style={styles.summaryLabel}>Podatek VAT (23%):</Text>
+              <Text style={styles.summaryValue}>{formatWaluty(podatekVat)}</Text>
             </View>
             <View
               style={{
@@ -310,19 +275,15 @@ export const MojDokumentPDF = ({offerData}) => {
                 borderBottomWidth: 0,
               }}
             >
-              <Text style={styles.summaryLabel}>DO ZAPŁATY (BRUTTO):</Text>
-              <Text style={styles.summaryValue}>
-                {formatWaluty(sumaBrutto)}
-              </Text>
+              <Text style={styles.summaryLabel}>RAZEM BRUTTO:</Text>
+              <Text style={styles.summaryValue}>{formatWaluty(sumaBrutto)}</Text>
             </View>
           </View>
         </View>
 
-        {/* === 6. STOPKA (Notka) === */}
+        {/* === 6. STOPKA === */}
         <Text style={styles.footer}>
-          Oferta jest ważna przez 30 dni od daty wystawienia. Podane ceny są
-          cenami netto, do których należy doliczyć podatek VAT ({daneOferty.vat}
-          %). Czas realizacji: 14 dni roboczych od momentu akceptacji oferty.
+          Wygenerowano automatycznie dla projektu "{offerData.text}".
         </Text>
       </Page>
     </Document>

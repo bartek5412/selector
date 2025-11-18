@@ -4,8 +4,6 @@ import { useRef, useState, useEffect, useMemo } from "react";
 import Scene3D from "@/components/three/LetterScene";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { definedColor } from "@/components/three/untils";
 import { Switch } from "@/components/ui/switch";
 import {
   Select,
@@ -16,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useLetters } from "@/hooks/useLetters";
+import { useLetterCalculation } from "@/hooks/useLetterCalculation"; // <--- NOWY IMPORT
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
@@ -26,7 +25,7 @@ import {
 } from "@/components/ui/tooltip";
 
 export default function LetterPage() {
-  // Hook do pobierania danych z bazy
+  // Hook do pobierania danych z bazy (potrzebny do renderowania opcji w selectach)
   const { data, getOptionsByElementType, loading, error } = useLetters();
 
   // Stan przechowujący tekst do wygenerowania
@@ -37,21 +36,22 @@ export default function LetterPage() {
 
   // Przetwarzanie danych ścieżki
   const [pathData, setPathData] = useState<any>(null);
+  
+  // Obliczamy długość (używana zarówno do wizualizacji jak i wyceny)
   const length = pathData
     ? pathData.length
     : pathLength
     ? parseFloat(pathLength)
     : 0;
-  const [showGlow, setShowGlow] = useState(false);
 
-  const [color] = useState(definedColor[0].value);
+  const [showGlow, setShowGlow] = useState(false);
+  const [color] = useState("#ffffff"); // Przykładowy domyślny kolor, można zmienić na definedColor
   const [secondColor] = useState("#000000");
   const [showDark, setShowDark] = useState(false);
   const [showRods, setShowRods] = useState(true);
   const [svgData, setSvgData] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Stany dla selectów - inicjalizujemy domyślnymi wartościami
+  // Stany dla selectów - inicjalizujemy pustymi stringami
   const [frontLetter, setFrontLetter] = useState<string>("");
   const [backLetter, setBackLetter] = useState<string>("");
   const [frontLetterAdd, setFrontLetterAdd] = useState<string>("");
@@ -62,7 +62,7 @@ export default function LetterPage() {
 
   const [tapeModel, setTapeModel] = useState<string>("");
   const [tapeColor, setTapeColor] = useState<string>("");
-  const [tapeColor2, setTapeColor2] = useState<string>("");
+  // const [tapeColor2, setTapeColor2] = useState<string>(""); // Opcjonalne
   const [lighting, setLighting] = useState<string>("");
   const [mounting, setMounting] = useState<string>("");
   const [substructure, setSubstructure] = useState<string>("");
@@ -73,12 +73,8 @@ export default function LetterPage() {
 
   // Wyłącz przewijanie strony
   useEffect(() => {
-    // Zapisz oryginalny styl overflow
     const originalOverflow = document.body.style.overflow;
-    // Wyłącz przewijanie
     document.body.style.overflow = "hidden";
-
-    // Przywróć oryginalny styl przy odmontowaniu
     return () => {
       document.body.style.overflow = originalOverflow;
     };
@@ -92,9 +88,6 @@ export default function LetterPage() {
         if (storedData) {
           const decodedPathData = JSON.parse(storedData);
           setPathData(decodedPathData);
-
-          // Opcjonalnie: usuń dane z localStorage po odczytaniu
-          // localStorage.removeItem(pathSessionKey);
         }
       } catch (error) {
         console.error("Błąd podczas przetwarzania danych ścieżki:", error);
@@ -102,24 +95,12 @@ export default function LetterPage() {
     }
   }, [pathSessionKey]);
 
-  // Obliczane wartości
+  // Obliczane wartości wizualne
   const rodThickness = 0.1;
   const rodOffset = -depth - 0.05;
-
-  // Funkcja do pobierania ceny dla wybranej opcji
-  const getPriceForOption = (elementType: string, selectedId: string) => {
-    const options = getOptionsByElementType(elementType);
-    const selectedOption = options.find((option) => option.id === selectedId);
-    return selectedOption ? selectedOption.price : 0;
-  };
-
-  // Kalkulacja ceny - suma wszystkich wybranych opcji pomnożona przez długość
-
-
-  // Przelicznik PDF pt -> mm
   const PT_TO_MM = 25.4 / 72.0;
 
-  // Oblicz bbox dla aktualnego pathData
+  // Oblicz bbox dla aktualnego pathData (logika wizualna/wymiarowa)
   const bbox = useMemo(() => {
     if (!pathData?.path?.items)
       return null as null | {
@@ -195,7 +176,7 @@ export default function LetterPage() {
       if (tapeModelOptions.length > 0) setTapeModel(tapeModelOptions[0].id);
       if (tapeColorOptions.length > 0) {
         setTapeColor(tapeColorOptions[0].id);
-        setTapeColor2(tapeColorOptions[0].id);
+        // setTapeColor2(tapeColorOptions[0].id);
       }
       if (lightingOptions.length > 0) setLighting(lightingOptions[0].id);
       if (mountingOptions.length > 0) setMounting(mountingOptions[0].id);
@@ -205,20 +186,46 @@ export default function LetterPage() {
         setDimmer(dimmerOptions[0].id);
       }
 
-      // Oznacz jako zainicjalizowane
       setIsInitialized(true);
     }
-  }, [loading, data, isInitialized]);
+  }, [loading, data, isInitialized, getOptionsByElementType]);
+
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = (e) => {
       const text = e.target?.result as string;
-      setSvgData(text); // Zapisujemy zawartość pliku SVG do stanu
+      setSvgData(text);
     };
     reader.readAsText(file);
   };
+
+  // --- INTEGRACJA NOWEGO HOOKA DO OBLICZEŃ ---
+  const { totalPrice, components, isReady } = useLetterCalculation({
+    frontLetter,
+    backLetter,
+    frontLetterAdd,
+    tapeDepth,
+    tapeModel,
+    tapeColor,
+    lighting,
+    mounting,
+    substructure,
+    dimmer,
+    length: length || 0,
+    area: bbox?.areaMm2 || 0,
+  });
+
+  // Obiekt przekazywany do Scene3D -> PDF
+  const comprehensiveOfferData = useMemo(() => ({
+    components: components, // Lista wygenerowana przez hook
+    totalLength: length,
+    text: text,
+    dimensions: templateValue,
+    finalPrice: totalPrice, // Cena wyliczona przez hook
+    creationDate: new Date().toLocaleDateString("pl-PL"),
+  }), [components, length, text, templateValue, totalPrice]);
 
   // Loading state
   if (loading) {
@@ -237,27 +244,6 @@ export default function LetterPage() {
       </div>
     );
   }
-    const calculatePrice = () => {
-      const prices = [
-        getPriceForOption("frontLetterOptions", frontLetter),
-        getPriceForOption("backLetterOptions", backLetter),
-        getPriceForOption("frontLetterAdditionalOptions", frontLetterAdd),
-        getPriceForOption("tapeDepthOptions", tapeDepth),
-        getPriceForOption("tapeModelOptions", tapeModel),
-        getPriceForOption("tapeColorOptions", tapeColor),
-        getPriceForOption("tapeColorOptions", tapeColor2), // drugi kolor
-        getPriceForOption("lightingOptions", lighting),
-        getPriceForOption("mountingOptions", mounting),
-        getPriceForOption("substructureOptions", substructure),
-        getPriceForOption("dimmerOptions", dimmer),
-      ];
-
-      const totalPricePerUnit = prices.reduce((sum, price) => sum + price, 0);
-      return (totalPricePerUnit * length) / 1000;
-    };
-
-    const totalPrice = calculatePrice();
-    const totalData = {tapeType: tapeModel}
 
   return (
     <main className="flex h-screen w-screen flex-col lg:flex-row overflow-hidden">
@@ -539,29 +525,6 @@ export default function LetterPage() {
                   </TooltipProvider>
                 </div>
 
-                {/* <div>
-                  <Label className="text-sm font-medium mb-2 block">
-                    Kolor drugi
-                  </Label>
-                  <Select
-                    value={tapeColor2}
-                    onValueChange={(value) => setTapeColor2(value)}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Wybierz kolor" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {getOptionsByElementType("tapeColorOptions").map(
-                        (option) => (
-                          <SelectItem key={option.id} value={option.id}>
-                            {option.name}
-                          </SelectItem>
-                        )
-                      )}
-                    </SelectContent>
-                  </Select>
-                </div> */}
-
                 <div>
                   <Label className="text-sm font-medium mb-2 block">
                     Oświetlenie
@@ -791,7 +754,7 @@ export default function LetterPage() {
       {/* Widok 3D */}
       <div className="flex-1 h-screen bg-[#D1D5DB] dark:bg-gray-800">
         <Scene3D
-          offerData={totalData}
+          offerData={comprehensiveOfferData}
           text={text}
           length={length}
           depth={depth}
