@@ -7,6 +7,9 @@ import {
   StyleSheet,
   Font,
   Image,
+  Svg,
+  Path,
+  Rect,
 } from "@react-pdf/renderer";
 
 // --- Rejestracja czcionki (Old Style) ---
@@ -73,6 +76,16 @@ const styles = StyleSheet.create({
   imagePlaceholderText: {
     color: "#888888",
     fontSize: 12,
+  },
+  // Podgląd ścieżki 2D
+  pathPreview: {
+    width: "100%",
+    height: 180,
+    backgroundColor: "#ffffff",
+    border: "1px solid #e0e0e0",
+    marginBottom: 20,
+    justifyContent: "center",
+    alignItems: "center",
   },
   // 4. Tabela ze specyfikacją
   sectionTitle: {
@@ -166,6 +179,106 @@ const styles = StyleSheet.create({
 const formatWaluty = (wartosc: number) => 
   `${wartosc.toFixed(2).replace(".", ",")} PLN`;
 
+// Funkcja konwertująca pathData na komponenty SVG dla react-pdf
+const renderPathPreview = (pathData: any) => {
+  if (!pathData?.path?.items) return null;
+
+  const PT_TO_MM = 25.4 / 72.0;
+  
+  // Oblicz bbox dla skalowania
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  
+  pathData.path.items.forEach((item: any) => {
+    const points = item.slice(1);
+    points.forEach((p: any) => {
+      if (p?.type === "point") {
+        if (p.x < minX) minX = p.x;
+        if (p.y < minY) minY = p.y;
+        if (p.x > maxX) maxX = p.x;
+        if (p.y > maxY) maxY = p.y;
+      } else if (p?.type === "rect") {
+        if (p.x0 < minX) minX = p.x0;
+        if (p.y0 < minY) minY = p.y0;
+        if (p.x1 > maxX) maxX = p.x1;
+        if (p.y1 > maxY) maxY = p.y1;
+      }
+    });
+  });
+
+  if (!isFinite(minX) || !isFinite(minY) || !isFinite(maxX) || !isFinite(maxY)) {
+    return null;
+  }
+
+  const widthPt = Math.max(0, maxX - minX);
+  const heightPt = Math.max(0, maxY - minY);
+  
+  // Skalowanie do rozmiaru podglądu (180px wysokości, zachowując proporcje)
+  const previewWidth = 500; // szerokość w punktach PDF
+  const previewHeight = 150; // wysokość w punktach PDF
+  const scaleX = previewWidth / widthPt;
+  const scaleY = previewHeight / heightPt;
+  const scale = Math.min(scaleX, scaleY) * 0.9; // 0.9 dla marginesu
+  
+  const offsetX = (previewWidth - widthPt * scale) / 2 - minX * scale;
+  const offsetY = (previewHeight - heightPt * scale) / 2 - minY * scale;
+
+  return (
+    <Svg width={previewWidth} height={previewHeight} viewBox={`0 0 ${previewWidth} ${previewHeight}`}>
+      {pathData.path.items.map((item: any, index: number) => {
+        const [cmd, ...points] = item;
+        
+        if (cmd === "l") {
+          // Linia
+          const [p1, p2] = points;
+          if (p1?.type === "point" && p2?.type === "point") {
+            return (
+              <Path
+                key={index}
+                d={`M ${p1.x * scale + offsetX} ${p1.y * scale + offsetY} L ${p2.x * scale + offsetX} ${p2.y * scale + offsetY}`}
+                stroke="#000000"
+                strokeWidth={1}
+                fill="none"
+              />
+            );
+          }
+        } else if (cmd === "re") {
+          // Prostokąt
+          const [rect] = points;
+          if (rect?.type === "rect") {
+            return (
+              <Rect
+                key={index}
+                x={rect.x0 * scale + offsetX}
+                y={rect.y0 * scale + offsetY}
+                width={(rect.x1 - rect.x0) * scale}
+                height={(rect.y1 - rect.y0) * scale}
+                stroke="#000000"
+                strokeWidth={1}
+                fill="none"
+              />
+            );
+          }
+        } else if (cmd === "c") {
+          // Krzywa Beziera
+          const [p0, p1, p2, p3] = points;
+          if (p0?.type === "point" && p1?.type === "point" && p2?.type === "point" && p3?.type === "point") {
+            return (
+              <Path
+                key={index}
+                d={`M ${p0.x * scale + offsetX} ${p0.y * scale + offsetY} C ${p1.x * scale + offsetX} ${p1.y * scale + offsetY}, ${p2.x * scale + offsetX} ${p2.y * scale + offsetY}, ${p3.x * scale + offsetX} ${p3.y * scale + offsetY}`}
+                stroke="#000000"
+                strokeWidth={1}
+                fill="none"
+              />
+            );
+          }
+        }
+        return null;
+      })}
+    </Svg>
+  );
+};
+
 // --- Komponent Dokumentu ---
 // Definiujemy typ propsów dla pewności (opcjonalne, jeśli używasz JS, pomiń interface)
 interface OfferProps {
@@ -176,6 +289,7 @@ interface OfferProps {
     finalPrice: number;
     creationDate: string;
     dimensions: string;
+    pathData?: any; // Dodajemy opcjonalne pathData
   };
 }
 
@@ -213,6 +327,19 @@ export const MojDokumentPDF = ({ offerData }: OfferProps) => {
             <Text style={{ fontSize: 11 }}>Długość obrysu (do wyceny): {offerData.totalLength.toFixed(0)} mm</Text>
           </View>
         </View>
+
+        {/* === 3. PODGLĄD ŚCIEŻKI 2D === */}
+        {offerData.pathData ? (
+          <View style={styles.pathPreview}>
+            {renderPathPreview(offerData.pathData)}
+          </View>
+        ) : (
+          <View style={styles.imagePlaceholder}>
+            <Text style={styles.imagePlaceholderText}>
+              Brak podglądu ścieżki
+            </Text>
+          </View>
+        )}
 
         {/* === 4. SPECYFIKACJA (Tabela dynamiczna) === */}
         <Text style={styles.sectionTitle}>Wybrane komponenty</Text>

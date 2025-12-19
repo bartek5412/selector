@@ -39,6 +39,7 @@ interface DetailedOfferData {
   dimensions: string;
   finalPrice: number;
   creationDate: string;
+  pathData?: any; // Opcjonalne dane ścieżki dla faktury
 }
 
 // Definiujemy typy dla propsów
@@ -148,12 +149,12 @@ export default function Scene3D({
             <PathModel
               pathData={pathData}
               //text={text}
-             // depth={depth}
+              // depth={depth}
               color={"#000000"}
-             // secondColor={secondColor}
-             // x={x}
-             // y={y}
-             // showRods={showRods}
+              // secondColor={secondColor}
+              // x={x}
+              // y={y}
+              // showRods={showRods}
             />
           ) : svgData ? (
             // Jeśli mamy dane SVG, renderuj model SVG
@@ -233,7 +234,7 @@ export default function Scene3D({
               </p>
             </div>
             <PDFDownloadLink
-              document={<MojDokumentPDF offerData={offerData}/>}
+              document={<MojDokumentPDF offerData={offerData} />}
               fileName="faktura-test.pdf"
             >
               {/* Używamy "children as a function", aby uzyskać dostęp 

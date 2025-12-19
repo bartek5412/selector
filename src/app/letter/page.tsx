@@ -173,8 +173,9 @@ export default function LetterPage() {
       dimensions: templateValue,
       finalPrice: totalPrice, // Cena wyliczona przez hook
       creationDate: new Date().toLocaleDateString("pl-PL"),
+      pathData: pathData, // Dodajemy dane ścieżki do faktury
     }),
-    [components, length, text, templateValue, totalPrice]
+    [components, length, text, templateValue, totalPrice, pathData]
   );
 
   // Loading state
