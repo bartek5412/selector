@@ -10,7 +10,7 @@ export async function PUT(
     const { id } = await params;
     const data = await request.json();
 
-    const updatedFrame = await prisma.letter.update({
+    const updatedFrame = await prisma.letterOption.update({
       where: { id },
       data: {
         name: data.name,
@@ -41,7 +41,7 @@ export async function DELETE(
   try {
     const { id } = await params;
 
-    await prisma.letter.delete({
+    await prisma.letterOption.delete({
       where: { id },
     });
 

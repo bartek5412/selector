@@ -22,7 +22,7 @@ model SmartFrame {
   wysokosc    Float
 //  createdAt   DateTime  @default(now())
 }
-model Letter {
+model LetterOption {
     id          String    @id @default(cuid())
     name String
     description String
@@ -33,4 +33,13 @@ model Letter {
     unit String?
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
+}
+
+model Letter {
+    id          String    @id @default(cuid())
+    name        String
+    description String
+    type        String
+    createdAt   DateTime  @default(now())
+    updatedAt   DateTime  @updatedAt
 }

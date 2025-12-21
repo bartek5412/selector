@@ -9,7 +9,8 @@ export default function HeaderCustom() {
 
   const navItems = [
     { href: "/", label: "Strona główna" },
-    { href: "/letter", label: "Litery" },
+    { href: "/letter/upload", label: "Litery" },
+    { href: "/letterSettings", label: "Parametry konfiguracyjne" },
    //  { href: "/pylons", label: "Pylony" },
    //  { href: "/smartFrame", label: "Smart Frame" },
     //  { href: "/test-frame", label: "Test 3D" },

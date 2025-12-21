@@ -14,7 +14,7 @@ export async function GET(request: Request) {
     // Jeśli podano elementType, filtruj po tym polu
     const whereClause = elementType ? { elementType } : {};
 
-    const letter = await prisma.letter.findMany({
+    const letter = await prisma.letterOption.findMany({
       where: whereClause,
     });
 
@@ -43,7 +43,7 @@ export async function POST(request: Request) {
   try {
     const data = await request.json(); // Pobieramy dane z frontendu
 
-    const newFrame = await prisma.letter.create({
+    const newFrame = await prisma.letterOption.create({
       data: {
         name: data.name,
         description: data.description,
