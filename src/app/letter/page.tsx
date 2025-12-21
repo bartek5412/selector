@@ -7,15 +7,29 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useLetters } from "@/hooks/useLetters";
 import { useLetterCalculation } from "@/hooks/useLetterCalculation";
 import { useLetterTypes } from "@/hooks/useLetterTypes";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { SelectWithTooltip } from "@/components/ui/select-with-tooltip";
 import { calculateBbox } from "@/utils/bbox";
 import LetterTypeScene from "@/components/three/LetterTypeScene";
 import { Card } from "@/components/ui/card";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import { MojDokumentPDF } from "@/app/pdf-viewer/document";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Save, List } from "lucide-react";
+import Link from "next/link";
+import { useSession } from "next-auth/react";
 
 export default function LetterPage() {
+  const { data: session, status } = useSession();
   // Hook do pobierania danych z bazy (potrzebny do renderowania opcji w selectach)
   const { data, getOptionsByElementType, loading, error } = useLetters();
 
@@ -31,6 +45,7 @@ export default function LetterPage() {
   const searchParams = useSearchParams();
   const pathSessionKey = searchParams.get("pathSession");
   const pathLength = searchParams.get("pathLength"); // Zachowujemy kompatybilność wsteczną
+  const configId = searchParams.get("configId");
 
   // Przetwarzanie danych ścieżki
   const [pathData, setPathData] = useState<any>(null);
@@ -62,6 +77,20 @@ export default function LetterPage() {
   // Stan dla ręcznej skali
   const [manualScale, setManualScale] = useState(1);
 
+  // Stan dla dialogu zapisywania
+  const [saveDialogOpen, setSaveDialogOpen] = useState(false);
+  const [configName, setConfigName] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [currentConfigId, setCurrentConfigId] = useState<string | null>(null);
+  const router = useRouter();
+
+  // Sprawdź czy użytkownik jest zalogowany i przekieruj jeśli nie
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/auth/login?callbackUrl=/letter");
+    }
+  }, [status, router]);
+
   // Wyłącz przewijanie strony
   useEffect(() => {
     const originalOverflow = document.body.style.overflow;
@@ -88,6 +117,56 @@ export default function LetterPage() {
       }
     }
   }, [pathSessionKey]);
+
+  // Reset currentConfigId jeśli nie ma configId w URL
+  useEffect(() => {
+    if (!configId) {
+      setCurrentConfigId(null);
+      setConfigName("");
+    }
+  }, [configId]);
+
+  // Ładowanie konfiguracji z bazy danych
+  useEffect(() => {
+    if (configId && !isInitialized) {
+      const loadConfiguration = async () => {
+        try {
+          const response = await fetch(`/api/letter-config/${configId}`);
+          if (!response.ok) {
+            throw new Error("Błąd pobierania konfiguracji");
+          }
+          const config = await response.json();
+
+          // Zapisz ID i nazwę konfiguracji dla późniejszej aktualizacji
+          setCurrentConfigId(config.id);
+          setConfigName(config.name);
+
+          // Załaduj wszystkie wartości konfiguracji
+          if (config.letterType) setLetterType(config.letterType);
+          if (config.frontLetter) setFrontLetter(config.frontLetter);
+          if (config.backLetter) setBackLetter(config.backLetter);
+          if (config.frontLetterAdd) setFrontLetterAdd(config.frontLetterAdd);
+          if (config.tapeDepth) setTapeDepth(config.tapeDepth);
+          if (config.tapeModel) setTapeModel(config.tapeModel);
+          if (config.tapeColor) setTapeColor(config.tapeColor);
+          if (config.lighting) setLighting(config.lighting);
+          if (config.mounting) setMounting(config.mounting);
+          if (config.substructure) setSubstructure(config.substructure);
+          if (config.dimmer) setDimmer(config.dimmer);
+          if (config.pathData) {
+            setPathData(config.pathData);
+          }
+
+          setIsInitialized(true);
+        } catch (error) {
+          console.error("Błąd podczas ładowania konfiguracji:", error);
+          alert("Wystąpił błąd podczas ładowania konfiguracji");
+        }
+      };
+
+      loadConfiguration();
+    }
+  }, [configId, isInitialized]);
 
   // Oblicz bbox dla aktualnego pathData (logika wizualna/wymiarowa)
   const bbox = useMemo(() => calculateBbox(pathData), [pathData]);
@@ -330,11 +409,90 @@ export default function LetterPage() {
     [components, length, letterType, templateValue, totalPrice, pathData]
   );
 
-  // Loading state
-  if (loading) {
+  // Funkcja zapisywania/aktualizacji konfiguracji
+  const handleSaveConfiguration = async () => {
+    if (!configName.trim()) {
+      alert("Proszę podać nazwę konfiguracji");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      // Jeśli edytujemy istniejącą konfigurację, użyj PUT
+      const isUpdate = currentConfigId !== null;
+      const url = isUpdate
+        ? `/api/letter-config/${currentConfigId}`
+        : "/api/letter-config";
+      const method = isUpdate ? "PUT" : "POST";
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: configName.trim(),
+          letterType,
+          frontLetter,
+          backLetter,
+          frontLetterAdd,
+          tapeDepth,
+          tapeModel,
+          tapeColor,
+          lighting,
+          mounting,
+          substructure,
+          dimmer,
+          pathData,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          isUpdate
+            ? "Błąd podczas aktualizacji konfiguracji"
+            : "Błąd podczas zapisywania konfiguracji"
+        );
+      }
+
+      setSaveDialogOpen(false);
+      if (!isUpdate) {
+        // Jeśli to nowa konfiguracja, wyczyść nazwę
+        setConfigName("");
+        setCurrentConfigId(null);
+      }
+      alert(
+        isUpdate
+          ? "Konfiguracja została zaktualizowana!"
+          : "Konfiguracja została zapisana!"
+      );
+    } catch (error) {
+      console.error("Błąd zapisywania:", error);
+      alert(
+        currentConfigId
+          ? "Wystąpił błąd podczas aktualizacji konfiguracji"
+          : "Wystąpił błąd podczas zapisywania konfiguracji"
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Loading state - sprawdź też sesję
+  if (loading || status === "loading") {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">Ładowanie opcji...</div>
+        <div className="text-lg">Ładowanie...</div>
+      </div>
+    );
+  }
+
+  // Jeśli nie jest zalogowany, nie renderuj strony (middleware powinien przekierować)
+  // useEffect już przekierowuje, ale pokazujemy komunikat podczas przekierowania
+  if (status === "unauthenticated" || !session) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg">Przekierowywanie do logowania...</div>
       </div>
     );
   }
@@ -354,6 +512,76 @@ export default function LetterPage() {
       <div className="w-full lg:w-2/6 h-full bg-white mt-10 px-6 overflow-y-auto dark:bg-gray-900">
         <ScrollArea className="h-full">
           <div className="p-6 space-y-8">
+            {/* Przyciski akcji */}
+            <div className="flex gap-2">
+              <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" className="flex-1">
+                    <Save className="mr-2 h-4 w-4" />
+                    {currentConfigId
+                      ? "Zaktualizuj konfigurację"
+                      : "Zapisz konfigurację"}
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>
+                      {currentConfigId
+                        ? "Zaktualizuj konfigurację"
+                        : "Zapisz konfigurację"}
+                    </DialogTitle>
+                    <DialogDescription>
+                      {currentConfigId
+                        ? "Zaktualizuj nazwę i zapisz zmiany w tej konfiguracji."
+                        : "Podaj nazwę dla tej konfiguracji. Będziesz mógł później wrócić do jej edycji."}
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <div>
+                      <Label htmlFor="config-name">Nazwa konfiguracji</Label>
+                      <Input
+                        id="config-name"
+                        value={configName}
+                        onChange={(e) => setConfigName(e.target.value)}
+                        placeholder="np. Konfiguracja A - czerwona"
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            handleSaveConfiguration();
+                          }
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button
+                      variant="outline"
+                      onClick={() => setSaveDialogOpen(false)}
+                    >
+                      Anuluj
+                    </Button>
+                    <Button
+                      onClick={handleSaveConfiguration}
+                      disabled={saving || !configName.trim()}
+                    >
+                      {saving
+                        ? currentConfigId
+                          ? "Aktualizowanie..."
+                          : "Zapisywanie..."
+                        : currentConfigId
+                        ? "Zaktualizuj"
+                        : "Zapisz"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+              <Link href="/letter/configurations">
+                <Button variant="outline" className="flex-1">
+                  <List className="mr-2 h-4 w-4" />
+                  Lista konfiguracji
+                </Button>
+              </Link>
+            </div>
+
             {/* Rodzaj litery */}
             <div>
               <h3 className="text-lg font-semibold mb-4">Rodzaj litery</h3>

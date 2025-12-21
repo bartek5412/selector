@@ -15,8 +15,18 @@ const globalForPrisma = globalThis as unknown as {
 
 // Jeśli instancja już istnieje, użyj jej. Jeśli nie, stwórz nową.
 // To zapobiega tworzeniu wielu połączeń w trybie deweloperskim.
+let prismaInstance = globalForPrisma.prisma;
+
+// Sprawdź czy Prisma Client ma nowy model (letterConfiguration)
+// Jeśli nie, utwórz nową instancję (wymusza reload po regeneracji Prisma Client)
+if (prismaInstance && !('letterConfiguration' in prismaInstance)) {
+  console.warn("⚠️ Prisma Client nie zawiera modelu letterConfiguration. Tworzenie nowej instancji...");
+  prismaInstance = undefined;
+  globalForPrisma.prisma = undefined;
+}
+
 export const prisma =
-  globalForPrisma.prisma ??
+  prismaInstance ??
   new PrismaClient({
     log:
       process.env.NODE_ENV === "development"

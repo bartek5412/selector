@@ -43,3 +43,42 @@ model Letter {
     createdAt   DateTime  @default(now())
     updatedAt   DateTime  @updatedAt
 }
+
+model User {
+    id                String    @id @default(cuid())
+    email             String    @unique
+    name              String?
+    passwordHash      String
+    role              UserRole  @default(USER)
+    canEditParameters Boolean   @default(false)
+    canViewAllConfigs Boolean   @default(false)
+    createdAt         DateTime  @default(now())
+    updatedAt         DateTime  @updatedAt
+    configurations    LetterConfiguration[]
+}
+
+enum UserRole {
+    USER
+    ADMIN
+}
+
+model LetterConfiguration {
+    id            String    @id @default(cuid())
+    name          String
+    letterType    String?
+    frontLetter   String?
+    backLetter    String?
+    frontLetterAdd String?
+    tapeDepth     String?
+    tapeModel     String?
+    tapeColor     String?
+    lighting      String?
+    mounting      String?
+    substructure  String?
+    dimmer        String?
+    pathData      Json?     // Przechowuje pełne dane ścieżki jako JSON
+    userId        String    // Właściciel konfiguracji
+    user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+    createdAt     DateTime  @default(now())
+    updatedAt     DateTime  @updatedAt
+}
