@@ -1,6 +1,30 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { hasSessionCookie } from "./lib/auth-edge";
+
+/**
+ * Check if a valid session cookie exists (Edge Runtime compatible)
+ * This function does NOT use Prisma or decode JWT, so it can be used in middleware
+ * It only checks for the presence of the session cookie
+ * Full authentication is handled in API routes with Node.js runtime
+ */
+function hasSessionCookie(cookieHeader: string | null): boolean {
+  if (!cookieHeader) {
+    return false;
+  }
+
+  // Extract cookies
+  const cookies = cookieHeader.split(";").reduce((acc, cookie) => {
+    const [key] = cookie.trim().split("=");
+    acc[key] = true;
+    return acc;
+  }, {} as Record<string, boolean>);
+
+  // Check for NextAuth session cookie (both production and development names)
+  return !!(
+    cookies["__Secure-next-auth.session-token"] ||
+    cookies["next-auth.session-token"]
+  );
+}
 
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
