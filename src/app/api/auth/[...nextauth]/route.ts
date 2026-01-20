@@ -1,4 +1,4 @@
-import { handlers } from "@/lib/auth";
+import { handlers } from "../../../../lib/auth";
 
 // Ustawiamy Node.js runtime, ponieważ NextAuth używa Prisma
 export const runtime = 'nodejs';
