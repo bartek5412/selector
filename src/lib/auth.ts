@@ -77,8 +77,10 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
   session: {
     strategy: "jwt",
   },
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET,
   trustHost: true, // Wymagane dla Vercel deployment
+  // NextAuth 5 może używać AUTH_URL zamiast NEXTAUTH_URL
+  // trustHost: true powinno automatycznie wykryć URL z nagłówków
   cookies: {
     sessionToken: {
       name: process.env.VERCEL || process.env.NODE_ENV === "production" 
