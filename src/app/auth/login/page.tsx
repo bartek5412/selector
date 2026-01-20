@@ -24,21 +24,18 @@ function LoginForm() {
     setLoading(true);
 
     try {
-      // Używamy redirect: false, aby móc obsłużyć błędy
+      // Używamy redirect: true, aby NextAuth mógł poprawnie ustawić cookie
       const result = await signIn("credentials", {
         email,
         password,
-        redirect: false,
+        redirect: true,
+        callbackUrl: callbackUrl,
       });
-
-      if (result?.error) {
-        setError("Nieprawidłowy email lub hasło");
-        setLoading(false);
-      } else if (result?.ok) {
-        // Przekieruj do callbackUrl po udanym logowaniu
-        window.location.href = callbackUrl;
-      }
-    } catch {
+      
+      // Jeśli redirect: true, signIn automatycznie przekieruje
+      // Nie potrzebujemy dodatkowego kodu tutaj
+    } catch (error) {
+      console.error("Login error:", error);
       setError("Wystąpił błąd podczas logowania");
       setLoading(false);
     }
