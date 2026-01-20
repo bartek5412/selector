@@ -39,7 +39,9 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 1. **Zmienne środowiskowe**: Upewnij się, że w Vercel Dashboard ustawiłeś następujące zmienne środowiskowe:
    - `DATABASE_URL` - URL do bazy danych PostgreSQL
-   - Inne zmienne wymagane przez aplikację (np. dla NextAuth)
+   - `NEXTAUTH_SECRET` - Sekretny klucz dla NextAuth (wygeneruj: `openssl rand -base64 32`)
+   - `NEXTAUTH_URL` - URL Twojej aplikacji na Vercel (np. `https://your-app.vercel.app`)
+   - `AUTH_URL` - (opcjonalnie) URL dla NextAuth 5, zazwyczaj taki sam jak `NEXTAUTH_URL`
 
 2. **Python Runtime**: Aplikacja używa Python serverless functions w folderze `api/`:
    - `api/process-pdf.py` - przetwarzanie plików PDF
