@@ -11,7 +11,6 @@ interface LetterTypeSceneProps {
 
 export default function LetterTypeScene({
   letterType,
-  pathData,
 }: LetterTypeSceneProps) {
   // Wyświetlamy literę z letterType lub domyślnie "A"
   const displayText = letterType || "A";

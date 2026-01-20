@@ -31,7 +31,7 @@ interface LetterConfiguration {
   mounting: string | null;
   substructure: string | null;
   dimmer: string | null;
-  pathData: any;
+  pathData: unknown;
   createdAt: string;
   updatedAt: string;
 }

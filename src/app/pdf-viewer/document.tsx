@@ -5,12 +5,11 @@ import {
   View,
   Document,
   StyleSheet,
-  Font,
-  Image,
   Svg,
   Path,
   Rect,
 } from "@react-pdf/renderer";
+import type { PathData, PathPoint } from "@/types/path";
 
 // --- Rejestracja czcionki (Old Style) ---
 // Używamy Merriweather jako klasycznej czcionki szeryfowej
@@ -180,17 +179,15 @@ const formatWaluty = (wartosc: number) =>
   `${wartosc.toFixed(2).replace(".", ",")} PLN`;
 
 // Funkcja konwertująca pathData na komponenty SVG dla react-pdf
-const renderPathPreview = (pathData: any) => {
+const renderPathPreview = (pathData: PathData | null) => {
   if (!pathData?.path?.items) return null;
-
-  const PT_TO_MM = 25.4 / 72.0;
   
   // Oblicz bbox dla skalowania
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
   
-  pathData.path.items.forEach((item: any) => {
+  pathData.path.items.forEach((item) => {
     const points = item.slice(1);
-    points.forEach((p: any) => {
+    points.forEach((p: PathPoint) => {
       if (p?.type === "point") {
         if (p.x < minX) minX = p.x;
         if (p.y < minY) minY = p.y;
@@ -224,7 +221,7 @@ const renderPathPreview = (pathData: any) => {
 
   return (
     <Svg width={previewWidth} height={previewHeight} viewBox={`0 0 ${previewWidth} ${previewHeight}`}>
-      {pathData.path.items.map((item: any, index: number) => {
+      {pathData.path.items.map((item, index: number) => {
         const [cmd, ...points] = item;
         
         if (cmd === "l") {
@@ -289,7 +286,7 @@ interface OfferProps {
     finalPrice: number;
     creationDate: string;
     dimensions: string;
-    pathData?: any; // Dodajemy opcjonalne pathData
+    pathData?: PathData; // Dodajemy opcjonalne pathData
   };
 }
 
@@ -410,7 +407,7 @@ export const MojDokumentPDF = ({ offerData }: OfferProps) => {
 
         {/* === 6. STOPKA === */}
         <Text style={styles.footer}>
-          Wygenerowano automatycznie dla projektu "{offerData.text}".
+          Wygenerowano automatycznie dla projektu &quot;{offerData.text}&quot;.
         </Text>
       </Page>
     </Document>

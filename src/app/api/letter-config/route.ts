@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 
 // GET - Pobierz wszystkie konfiguracje
-export async function GET(request: Request) {
+export async function GET() {
   try {
     const session = await auth();
     

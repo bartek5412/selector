@@ -27,6 +27,7 @@ import {
 import { Save, List } from "lucide-react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import type { PathData, PathPoint } from "@/types/path";
 
 export default function LetterPage() {
   const { data: session, status } = useSession();
@@ -36,8 +37,6 @@ export default function LetterPage() {
   // Hook do pobierania rodzajów liter
   const {
     data: letterTypes,
-    loading: letterTypesLoading,
-    error: letterTypesError,
   } = useLetterTypes();
 
   // Stan przechowujący rodzaj litery
@@ -48,7 +47,7 @@ export default function LetterPage() {
   const configId = searchParams.get("configId");
 
   // Przetwarzanie danych ścieżki
-  const [pathData, setPathData] = useState<any>(null);
+  const [pathData, setPathData] = useState<PathData | null>(null);
 
   // Obliczamy długość (używana zarówno do wizualizacji jak i wyceny)
   const length = pathData
@@ -260,9 +259,9 @@ export default function LetterPage() {
         maxX = -Infinity,
         maxY = -Infinity;
 
-      pathData.path.items.forEach((item: any) => {
-        const [cmd, ...points] = item;
-        points.forEach((p: any) => {
+      pathData.path.items.forEach((item) => {
+        const [, ...points] = item;
+        points.forEach((p: PathPoint) => {
           if (p?.type === "point") {
             if (p.x < minX) minX = p.x;
             if (p.y < minY) minY = p.y;
@@ -333,7 +332,7 @@ export default function LetterPage() {
       ctx.strokeStyle = "#000000";
       ctx.lineWidth = 2;
 
-      pathData.path.items.forEach((item: any) => {
+      pathData.path.items.forEach((item) => {
         const [cmd, ...points] = item;
         ctx.beginPath();
 
@@ -380,7 +379,7 @@ export default function LetterPage() {
   }, [pathData, manualScale]);
 
   // --- INTEGRACJA NOWEGO HOOKA DO OBLICZEŃ ---
-  const { totalPrice, components, isReady } = useLetterCalculation({
+  const { totalPrice, components } = useLetterCalculation({
     frontLetter,
     backLetter,
     frontLetterAdd,

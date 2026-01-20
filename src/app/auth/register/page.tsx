@@ -51,7 +51,7 @@ export default function RegisterPage() {
 
       // Przekieruj do logowania
       router.push("/auth/login?registered=true");
-    } catch (error) {
+    } catch {
       setError("Wystąpił błąd podczas rejestracji");
     } finally {
       setLoading(false);

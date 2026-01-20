@@ -7,21 +7,7 @@ import { Bloom, EffectComposer } from "@react-three/postprocessing";
 import { KernelSize } from "postprocessing";
 import SvgModel from "./SvgModel";
 import PathModel from "./PathModel";
-
-// Komponent do wyświetlania pozycji kamery
-function CameraPosition() {
-  const { camera } = useThree();
-
-  useFrame(() => {
-    console.log("Camera position:", {
-      x: camera.position.x.toFixed(2),
-      y: camera.position.y.toFixed(2),
-      z: camera.position.z.toFixed(2),
-    });
-  });
-
-  return null;
-}
+import type { PathData, PathPoint } from "@/types/path";
 
 interface OfferComponent {
   category: string;
@@ -36,7 +22,7 @@ interface DetailedOfferData {
   dimensions: string;
   finalPrice: number;
   creationDate: string;
-  pathData?: any; // Opcjonalne dane ścieżki dla faktury
+  pathData?: PathData; // Opcjonalne dane ścieżki dla faktury
 }
 
 // Definiujemy typy dla propsów
@@ -56,7 +42,7 @@ interface SceneProps {
   showDark: boolean;
   tapeDepth: number;
   totalPrice: number;
-  pathData: any | null;
+  pathData: PathData | null;
   offerData: DetailedOfferData;
 }
 
@@ -75,51 +61,7 @@ export default function Scene3D({
   showGlow,
   svgData,
   showDark,
-  tapeDepth,
-  totalPrice,
-  pathData,
 }: SceneProps) {
-  // Przelicznik punktów PDF na mm
-  const PT_TO_MM = 25.4 / 72.0;
-
-  // BBOX dla zaznaczonego napisu (tylko bieżący pathData)
-  const bbox = (() => {
-    if (!pathData?.path?.items) return null;
-    let minX = Infinity,
-      minY = Infinity,
-      maxX = -Infinity,
-      maxY = -Infinity;
-    for (const item of pathData.path.items as Array<[string, ...any[]]>) {
-      const points = item.slice(1);
-      for (const p of points) {
-        if (p?.type === "point") {
-          if (p.x < minX) minX = p.x;
-          if (p.y < minY) minY = p.y;
-          if (p.x > maxX) maxX = p.x;
-          if (p.y > maxY) maxY = p.y;
-        } else if (p?.type === "rect") {
-          if (p.x0 < minX) minX = p.x0;
-          if (p.y0 < minY) minY = p.y0;
-          if (p.x1 > maxX) maxX = p.x1;
-          if (p.y1 > maxY) maxY = p.y1;
-        }
-      }
-    }
-    if (
-      !isFinite(minX) ||
-      !isFinite(minY) ||
-      !isFinite(maxX) ||
-      !isFinite(maxY)
-    )
-      return null;
-    const widthPt = Math.max(0, maxX - minX);
-    const heightPt = Math.max(0, maxY - minY);
-    const areaPt2 = widthPt * heightPt;
-    const widthMm = widthPt * PT_TO_MM;
-    const heightMm = heightPt * PT_TO_MM;
-    const areaMm2 = areaPt2 * PT_TO_MM ** 2;
-    return { widthMm, heightMm, areaMm2 };
-  })();
   return (
     <div className="relative w-full h-full">
       <Canvas

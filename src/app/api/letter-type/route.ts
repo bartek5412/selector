@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 // Funkcja do pobierania wszystkich rodzajów liter (GET)
-export async function GET(request: Request) {
+export async function GET() {
   try {
     const letters = await prisma.letter.findMany({
       orderBy: {

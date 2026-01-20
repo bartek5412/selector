@@ -22,7 +22,7 @@ interface PathData {
   stroke?: boolean;
   evenodd?: boolean;
   closePath?: boolean;
-  rect?: any;
+  rect?: { x0: number; y0: number; x1: number; y1: number };
   hasHoles?: boolean;
   isClosed?: boolean;
   complexity?: string;
@@ -81,8 +81,8 @@ export default function PdfViewer() {
       if (!response.ok) throw new Error("Błąd serwera przy przetwarzaniu PDF.");
       const data: ApiResponse = await response.json();
       setApiData(data);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Wystąpił błąd");
     } finally {
       setIsLoading(false);
     }
@@ -152,8 +152,8 @@ export default function PdfViewer() {
         setSelectedPathIndex(null);
         setPathLength(null);
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Wystąpił błąd");
     }
   };
 
