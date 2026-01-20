@@ -27,15 +27,14 @@ function LoginForm() {
       const result = await signIn("credentials", {
         email,
         password,
-        redirect: false,
+        redirect: true,
+        callbackUrl: callbackUrl,
       });
 
+      // Jeśli redirect: true, signIn automatycznie przekieruje
+      // Jeśli wystąpi błąd, zostanie przekierowany z parametrem error
       if (result?.error) {
         setError("Nieprawidłowy email lub hasło");
-      } else {
-        // Przekieruj do callbackUrl lub domyślnie do /
-        router.push(callbackUrl);
-        router.refresh();
       }
     } catch {
       setError("Wystąpił błąd podczas logowania");
