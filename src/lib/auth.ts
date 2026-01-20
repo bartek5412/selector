@@ -78,6 +78,7 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
     strategy: "jwt",
   },
   secret: process.env.NEXTAUTH_SECRET,
+  trustHost: true, // Wymagane dla Vercel deployment
   cookies: {
     sessionToken: {
       name: process.env.NODE_ENV === "production" 
