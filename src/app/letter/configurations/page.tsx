@@ -31,7 +31,7 @@ interface LetterConfiguration {
   mounting: string | null;
   substructure: string | null;
   dimmer: string | null;
-  pathData: unknown;
+  pathData: unknown | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -130,13 +130,13 @@ export default function ConfigurationsPage() {
     const sessionKey = `config_${config.id}_${Date.now()}`;
     
     // Jeśli jest pathData, zapisz je
-    if (config.pathData) {
+    if (config.pathData != null) {
       localStorage.setItem(sessionKey, JSON.stringify(config.pathData));
     }
 
     // Przekieruj do strony edycji z parametrami
     const params = new URLSearchParams();
-    if (config.pathData) {
+    if (config.pathData != null) {
       params.set("pathSession", sessionKey);
     }
     params.set("configId", config.id);
@@ -210,7 +210,7 @@ export default function ConfigurationsPage() {
                       <strong>Rodzaj litery:</strong> {config.letterType}
                     </p>
                   )}
-                  {config.pathData && (
+                  {config.pathData != null && (
                     <p className="text-green-600">
                       ✓ Zawiera dane ścieżki
                     </p>

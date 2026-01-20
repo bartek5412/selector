@@ -250,10 +250,14 @@ export default function LetterPage() {
 
       console.log(
         "Renderowanie ścieżki - liczba elementów:",
-        pathData.path.items.length
+        pathData.path?.items?.length ?? 0
       );
 
       // Oblicz bbox ścieżki (minX, minY, maxX, maxY)
+      if (!pathData.path?.items) {
+        return;
+      }
+
       let minX = Infinity,
         minY = Infinity,
         maxX = -Infinity,
@@ -272,12 +276,6 @@ export default function LetterPage() {
             if (p.y0 < minY) minY = p.y0;
             if (p.x1 > maxX) maxX = p.x1;
             if (p.y1 > maxY) maxY = p.y1;
-          } else if (p?.x !== undefined && p?.y !== undefined) {
-            // Obsługa prostych obiektów {x, y}
-            if (p.x < minX) minX = p.x;
-            if (p.y < minY) minY = p.y;
-            if (p.x > maxX) maxX = p.x;
-            if (p.y > maxY) maxY = p.y;
           }
         });
       });
@@ -329,6 +327,10 @@ export default function LetterPage() {
       const offsetY = -minY + padding;
 
       // Rysuj ścieżkę
+      if (!pathData.path?.items) {
+        return;
+      }
+
       ctx.strokeStyle = "#000000";
       ctx.lineWidth = 2;
 

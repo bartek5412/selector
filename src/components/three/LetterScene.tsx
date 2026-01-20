@@ -1,13 +1,13 @@
 "use client"; // Komponenty 3D muszą być renderowane po stronie klienta
 
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Stage } from "@react-three/drei";
 import TextModel from "./TextModel";
 import { Bloom, EffectComposer } from "@react-three/postprocessing";
 import { KernelSize } from "postprocessing";
 import SvgModel from "./SvgModel";
 import PathModel from "./PathModel";
-import type { PathData, PathPoint } from "@/types/path";
+import type { PathData } from "@/types/path";
 
 interface OfferComponent {
   category: string;
@@ -47,9 +47,7 @@ interface SceneProps {
 }
 
 export default function Scene3D({
-  offerData,
   text,
-  length,
   depth,
   color,
   x,
@@ -61,6 +59,7 @@ export default function Scene3D({
   showGlow,
   svgData,
   showDark,
+  pathData,
 }: SceneProps) {
   return (
     <div className="relative w-full h-full">

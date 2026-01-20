@@ -3,10 +3,11 @@
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Stage } from "@react-three/drei";
 import TextModel from "./TextModel";
+import type { PathData } from "@/types/path";
 
 interface LetterTypeSceneProps {
   letterType: string;
-  pathData: any | null;
+  pathData: PathData | null;
 }
 
 export default function LetterTypeScene({

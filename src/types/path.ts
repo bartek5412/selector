@@ -21,6 +21,8 @@ export interface PathItem {
 }
 
 export interface PathData {
+  length?: number;
+  pathIndex?: number;
   path?: {
     items?: Array<[string, ...PathPoint[]]>;
     hasHoles?: boolean;
@@ -31,5 +33,9 @@ export interface PathData {
       issues: string[];
       warnings: string[];
     };
+  };
+  pageDimensions?: {
+    width: number;
+    height: number;
   };
 }
