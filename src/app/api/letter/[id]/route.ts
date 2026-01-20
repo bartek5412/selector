@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/lib/auth";
 
 // Funkcja do aktualizacji ramki (PUT)
 export async function PUT(
@@ -7,10 +8,29 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Sprawdź uprawnienia do edycji parametrów
+    const session = await auth();
+    
+    if (!session?.user) {
+      return NextResponse.json(
+        { message: "Wymagane zalogowanie" },
+        { status: 401 }
+      );
+    }
+
+    const user = session.user;
+
+    if (!user.canEditParameters && user.role !== "ADMIN") {
+      return NextResponse.json(
+        { message: "Brak uprawnień do edycji parametrów" },
+        { status: 403 }
+      );
+    }
+
     const { id } = await params;
     const data = await request.json();
 
-    const updatedFrame = await prisma.letter.update({
+    const updatedFrame = await prisma.letterOption.update({
       where: { id },
       data: {
         name: data.name,
@@ -39,9 +59,28 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Sprawdź uprawnienia do edycji parametrów
+    const session = await auth();
+    
+    if (!session?.user) {
+      return NextResponse.json(
+        { message: "Wymagane zalogowanie" },
+        { status: 401 }
+      );
+    }
+
+    const user = session.user;
+
+    if (!user.canEditParameters && user.role !== "ADMIN") {
+      return NextResponse.json(
+        { message: "Brak uprawnień do edycji parametrów" },
+        { status: 403 }
+      );
+    }
+
     const { id } = await params;
 
-    await prisma.letter.delete({
+    await prisma.letterOption.delete({
       where: { id },
     });
 

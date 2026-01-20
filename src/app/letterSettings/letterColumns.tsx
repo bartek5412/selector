@@ -3,6 +3,13 @@
 
 import { useState } from "react";
 import { createColumnHelper } from "@tanstack/react-table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export type LetterSettings = {
   id: string;
@@ -15,11 +22,21 @@ export type LetterSettings = {
   unit: string;
 };
 
+// Funkcja do formatowania nazwy typu elementu
+const formatElementType = (type: string) => {
+  return type
+    .replace(/([A-Z])/g, " $1")
+    .replace(/^./, (str) => str.toUpperCase())
+    .trim();
+};
+
 // Funkcja do tworzenia kolumn z możliwością edycji
 export const createEditableColumns = (
   onSave: (id: string, data: Partial<LetterSettings>) => Promise<void>,
   onEdit: (id: string, changes: Partial<LetterSettings>) => Promise<void>,
-  onDelete: (id: string) => Promise<void>
+  onDelete: (id: string) => Promise<void>,
+  availableElementTypes: string[] = [],
+  availableUnits: string[] = ["mm", "m²", "szt", "kpl"]
 ) => {
   const columnHelper = createColumnHelper<LetterSettings>();
 
@@ -28,11 +45,13 @@ export const createEditableColumns = (
     onSave,
     field,
     rowId,
+    options,
   }: {
     value: string | number;
     onSave: (id: string, field: string, value: string | number) => void;
     field: string;
     rowId: string;
+    options?: string[];
   }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [editValue, setEditValue] = useState(value);
@@ -48,15 +67,51 @@ export const createEditableColumns = (
     };
 
     if (isEditing) {
+      // Jeśli to pole elementType lub unit i mamy opcje, użyj selecta
+      if ((field === "elementType" || field === "unit") && options && options.length > 0) {
+        return (
+          <div className="flex gap-1 items-center">
+            <Select
+              value={String(editValue)}
+              onValueChange={(val) => setEditValue(val)}
+            >
+              <SelectTrigger className="w-full h-8 text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {options.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {field === "elementType" ? formatElementType(option) : option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <button
+              onClick={handleSave}
+              className="px-2 py-1 text-xs bg-green-500 text-white rounded hover:bg-green-600"
+            >
+              ✓
+            </button>
+            <button
+              onClick={handleCancel}
+              className="px-2 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600"
+            >
+              ✗
+            </button>
+          </div>
+        );
+      }
+
+      // Dla innych pól użyj inputa
       return (
         <div className="flex gap-1">
           <input
-            type={field === "price" || field === "margin" ? "number" : "text"}
+            type={field === "price" || field === "margin" || field === "elementValue" ? "number" : "text"}
             value={editValue}
             onChange={(e) =>
               setEditValue(
-                field === "price" || field === "margin"
-                  ? parseFloat(e.target.value)
+                field === "price" || field === "margin" || field === "elementValue"
+                  ? parseFloat(e.target.value) || 0
                   : e.target.value
               )
             }
@@ -136,6 +191,7 @@ export const createEditableColumns = (
           onSave={(id, field, value) => onSave(id, { [field]: value })}
           field="elementType"
           rowId={row.original.id}
+          options={availableElementTypes}
         />
       ),
     }),
@@ -169,6 +225,7 @@ export const createEditableColumns = (
           onSave={(id, field, value) => onSave(id, { [field]: value })}
           field="unit"
           rowId={row.original.id}
+          options={availableUnits}
         />
       ),
     }),
