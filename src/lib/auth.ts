@@ -79,16 +79,18 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
   },
   secret: process.env.NEXTAUTH_SECRET,
   trustHost: true, // Wymagane dla Vercel deployment
+  basePath: "/api/auth", // Explicit base path for NextAuth
   cookies: {
     sessionToken: {
-      name: process.env.NODE_ENV === "production" 
+      name: process.env.VERCEL || process.env.NODE_ENV === "production" 
         ? "__Secure-next-auth.session-token" 
         : "next-auth.session-token",
       options: {
         httpOnly: true,
         sameSite: "lax",
         path: "/",
-        secure: process.env.NODE_ENV === "production",
+        secure: !!(process.env.VERCEL || process.env.NODE_ENV === "production"),
+        domain: process.env.VERCEL ? undefined : undefined, // Let Vercel handle domain
       },
     },
   },

@@ -59,6 +59,15 @@ export async function middleware(request: NextRequest) {
   // Użyj Edge-compatible auth do weryfikacji sesji (bez Prisma)
   // Sprawdzamy tylko obecność cookie sesji - pełna weryfikacja w API routes
   const cookieHeader = request.headers.get("cookie");
+  
+  // Debug: loguj dostępne cookie (tylko nazwy, nie wartości)
+  if (cookieHeader) {
+    const cookieNames = cookieHeader.split(";").map(c => c.trim().split("=")[0]);
+    console.log('🍪 Available cookies:', cookieNames.join(", "));
+  } else {
+    console.log('🍪 No cookies found');
+  }
+  
   const hasSession = hasSessionCookie(cookieHeader);
   
   if (!hasSession) {
