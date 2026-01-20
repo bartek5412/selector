@@ -7,9 +7,6 @@ import { Bloom, EffectComposer } from "@react-three/postprocessing";
 import { KernelSize } from "postprocessing";
 import SvgModel from "./SvgModel";
 import PathModel from "./PathModel";
-import { Card } from "@/components/ui/card";
-import { MojDokumentPDF } from "@/app/pdf-viewer/document";
-import { PDFDownloadLink } from "@react-pdf/renderer";
 
 // Komponent do wyświetlania pozycji kamery
 function CameraPosition() {
@@ -199,59 +196,6 @@ export default function Scene3D({
 
         {/* Komponent wyświetlający pozycję kamery */}
       </Canvas>
-
-      {/* Card w lewym dolnym narożniku */}
-      <Card className="absolute bottom-6 left-6 p-4 bg-white/95 backdrop-blur-sm border-[#D1D5DB] shadow-lg">
-        <div className="space-y-2">
-          <h3 className="text-sm font-semibold text-[#111827]">Informacje</h3>
-          <div className="text-xs text-[#111827]/70 space-y-1">
-            {bbox && (
-              <div className="pt-2 border-t border-gray-200 space-y-1">
-                <p>
-                  Długość:{" "}
-                  <span className="font-medium">{length.toFixed(0)} mm</span>
-                </p>
-                <p>
-                  Szerokość × Wysokość:{" "}
-                  <span className="font-medium">
-                    {bbox.widthMm.toFixed(1)} mm × {bbox.heightMm.toFixed(1)} mm
-                  </span>
-                </p>
-                <p>
-                  Powierzchnia:{" "}
-                  <span className="font-medium">
-                    {(bbox.areaMm2 / 10000).toFixed(2)} m²
-                  </span>
-                </p>
-              </div>
-            )}
-            <div className="pt-2 border-t border-gray-200">
-              <p className="text-sm font-semibold text-[#111827]">
-                Cena netto:{" "}
-                <span className="text-green-600">
-                  {totalPrice.toFixed(2)} zł
-                </span>
-              </p>
-            </div>
-            <PDFDownloadLink
-              document={<MojDokumentPDF offerData={offerData} />}
-              fileName="faktura-test.pdf"
-            >
-              {/* Używamy "children as a function", aby uzyskać dostęp 
-      do stanu 'loading' i dezaktywować przycisk podczas generowania.
-    */}
-              {({ loading }) => (
-                <button
-                  className="bg-primary hover:bg-primary/90 text-white text-md p-2 rounded-lg font-bold w-full mt-4"
-                  disabled={loading}
-                >
-                  {loading ? "Generowanie..." : "Wygeneruj ofertę PDF"}
-                </button>
-              )}
-            </PDFDownloadLink>
-          </div>
-        </div>
-      </Card>
     </div>
   );
 }

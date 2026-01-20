@@ -14,7 +14,7 @@ export async function GET(request: Request) {
     // Jeśli podano elementType, filtruj po tym polu
     const whereClause = elementType ? { elementType } : {};
 
-    const letter = await prisma.letter.findMany({
+    const letter = await prisma.letterOption.findMany({
       where: whereClause,
     });
 
@@ -41,9 +41,29 @@ export async function GET(request: Request) {
 // Funkcja do zapisywania nowej ramy (POST)
 export async function POST(request: Request) {
   try {
+    // Sprawdź uprawnienia do edycji parametrów
+    const { auth } = await import("@/lib/auth");
+    const session = await auth();
+    
+    if (!session?.user) {
+      return NextResponse.json(
+        { message: "Wymagane zalogowanie" },
+        { status: 401 }
+      );
+    }
+
+    const user = session.user;
+
+    if (!user.canEditParameters && user.role !== "ADMIN") {
+      return NextResponse.json(
+        { message: "Brak uprawnień do edycji parametrów" },
+        { status: 403 }
+      );
+    }
+
     const data = await request.json(); // Pobieramy dane z frontendu
 
-    const newFrame = await prisma.letter.create({
+    const newFrame = await prisma.letterOption.create({
       data: {
         name: data.name,
         description: data.description,

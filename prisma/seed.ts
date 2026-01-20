@@ -1,160 +1,169 @@
 // prisma/seed.ts
 import { PrismaClient } from "../src/generated/prisma";
+import {
+  fontTypeOptions,
+  frontLetterOptions,
+  backLetterOptions,
+  frontLetterAdditionalOptions,
+  tapeDepthOptions,
+  tapeModelOptions,
+  tapeColorOptions,
+  lightingOptions,
+  mountingOptions,
+  substructureOptions,
+  dimmerOptions,
+  templateOptions,
+} from "../src/lib/letterConst";
 
 const prisma = new PrismaClient();
 
 async function main() {
-  // Dodaj domyślne elementy Letter
-  const existingElements = await prisma.letter.count();
+  // Dodaj domyślne elementy LetterOption
+  const existingElements = await prisma.letterOption.count();
   if (existingElements > 0) {
     console.log("✅ Elementy już istnieją!");
-    return;
-  }
-  const defaultLetters = [
-    {
-      name: "Standardowa",
-      description: "Standardowa trzcionka",
-      price: 100.0,
-      elementType: "fontTypeOptions",
-      elementValue: 1.0,
-      margin: 10.0,
-      unit: "kpl",
-    },
-    {
-      name: "Plexi Opal 3mm",
-      description: "Plexi Opal 3mm",
-      price: 150.0,
-      elementType: "frontLetterOptions",
-      elementValue: 1.0,
-      margin: 15.0,
-      unit: "m2",
-    },
-    {
-      name: "PCV spieniona 10mm",
-      description: "PCV spieniona 10mm",
-      price: 150.0,
-      elementType: "backLetterOptions",
-      elementValue: 1.0,
-      margin: 15.0,
-      unit: "m2",
-    },
-    {
-      name: "Folia 8500",
-      description: "Folia 8500",
-      price: 150.0,
-      elementType: "frontLetterAdditionalOptions",
-      elementValue: 1.0,
-      margin: 15.0,
-      unit: "m2",
-    },
-    {
-      name: "Cienka (0.5mm)",
-      description: "Cienka taśma 0.5mm",
-      price: 100.0,
-      elementType: "tapeDepthOptions",
-      elementValue: 0.5,
-      margin: 10.0,
-      unit: "mm",
-    },
-    {
-      name: "Średnia (1mm)",
-      description: "Średnia taśma 1mm",
-      price: 120.0,
-      elementType: "tapeDepthOptions",
-      elementValue: 1.0,
-      margin: 12.0,
-      unit: "mm",
-    },
-    {
-      name: "Gruba (1.5mm)",
-      description: "Gruba taśma 1.5mm",
-      price: 140.0,
-      elementType: "tapeDepthOptions",
-      elementValue: 1.5,
-      margin: 14.0,
-      unit: "mm",
-    },
-    {
-      name: "Bardzo gruba (2mm)",
-      description: "Bardzo gruba taśma 2mm",
-      price: 160.0,
-      elementType: "tapeDepthOptions",
-      elementValue: 2.0,
-      margin: 16.0,
-      unit: "mm",
-    },
-    {
-      name: "Gładka taśma",
-      description: "Gładka taśma",
-      price: 150.0,
-      elementType: "tapeModelOptions",
-      elementValue: 1.0,
-      margin: 15.0,
-      unit: "mm",
-    },
-    {
-      name: "Biała taśma",
-      description: "Biała taśma",
-      price: 150.0,
-      elementType: "tapeColorOptions",
-      elementValue: 1.0,
-      margin: 15.0,
-      unit: "mm",
-    },
-    {
-      name: "brak",
-      description: "Brak oświetlenia",
-      price: 150.0,
-      elementType: "lightingOptions",
-      elementValue: 0.0,
-      margin: 15.0,
-      unit: "szt",
-    },
-    {
-      name: "Śruby",
-      description: "Śruby",
-      price: 150.0,
-      elementType: "mountingOptions",
-      elementValue: 1.0,
-      margin: 15.0,
-      unit: "szt",
-    },
-    {
-      name: "Dystanse",
-      description: "Dystanse",
-      price: 150.0,
-      elementType: "substructureOptions",
-      elementValue: 1.0,
-      margin: 15.0,
-      unit: "szt",
-    },
-    {
-      name: "Brak",
-      description: "Brak ściemniacza",
-      price: 150.0,
-      elementType: "dimmerOptions",
-      elementValue: 0.0,
-      margin: 15.0,
-      unit: "szt",
-    },
-    {
-      name: "Szablon do modelu",
-      description: "Szablon do modelu",
-      price: 150.0,
-      elementType: "templateOptions",
-      elementValue: 1.0,
-      margin: 15.0,
-      unit: "szt",
-    },
-  ];
+  } else {
+    // Funkcja pomocnicza do konwersji opcji z letterConst na format bazy danych
+    const createLetterOptions = (
+      options: Array<{ id: number; value: string; label: string }>,
+      elementType: string,
+      basePrice: number = 100.0,
+      baseMargin: number = 10.0,
+      unit: string = "szt"
+    ) => {
+      return options.map((option) => ({
+        name: option.label,
+        description: option.label,
+        price: basePrice + option.id * 10, // Cena zależy od ID
+        elementType: elementType,
+        elementValue: option.id,
+        margin: baseMargin + option.id,
+        unit: unit,
+      }));
+    };
 
-  for (const letter of defaultLetters) {
-    await prisma.letter.create({
-      data: letter,
-    });
+    // Tworzenie wszystkich opcji z letterConst
+    const allLetterOptions = [
+      ...createLetterOptions(
+        fontTypeOptions,
+        "fontTypeOptions",
+        100,
+        10,
+        "kpl"
+      ),
+      ...createLetterOptions(
+        frontLetterOptions,
+        "frontLetterOptions",
+        150,
+        15,
+        "m2"
+      ),
+      ...createLetterOptions(
+        backLetterOptions,
+        "backLetterOptions",
+        150,
+        15,
+        "m2"
+      ),
+      ...createLetterOptions(
+        frontLetterAdditionalOptions,
+        "frontLetterAdditionalOptions",
+        150,
+        15,
+        "m2"
+      ),
+      ...createLetterOptions(
+        tapeDepthOptions,
+        "tapeDepthOptions",
+        100,
+        10,
+        "mm"
+      ),
+      ...createLetterOptions(
+        tapeModelOptions,
+        "tapeModelOptions",
+        150,
+        15,
+        "mm"
+      ),
+      ...createLetterOptions(
+        tapeColorOptions,
+        "tapeColorOptions",
+        150,
+        15,
+        "mm"
+      ),
+      ...createLetterOptions(
+        lightingOptions,
+        "lightingOptions",
+        150,
+        15,
+        "szt"
+      ),
+      ...createLetterOptions(
+        mountingOptions,
+        "mountingOptions",
+        150,
+        15,
+        "szt"
+      ),
+      ...createLetterOptions(
+        substructureOptions,
+        "substructureOptions",
+        150,
+        15,
+        "szt"
+      ),
+      ...createLetterOptions(dimmerOptions, "dimmerOptions", 150, 15, "szt"),
+      ...createLetterOptions(
+        templateOptions,
+        "templateOptions",
+        150,
+        15,
+        "szt"
+      ),
+    ];
+
+    for (const letter of allLetterOptions) {
+      await prisma.letterOption.create({
+        data: letter,
+      });
+    }
+
+    console.log(
+      `✅ Dodano ${allLetterOptions.length} domyślnych elementów LetterOption z letterConst!`
+    );
   }
 
-  console.log("✅ Domyślne elementy zostały dodane!");
+  // Dodaj przykładowe rodzaje liter (Letter)
+  const existingLetterTypes = await prisma.letter.count();
+  if (existingLetterTypes === 0) {
+    const defaultLetterTypes = [
+      {
+        name: "A",
+        description: "Litera A",
+        type: "standard",
+      },
+      {
+        name: "B",
+        description: "Litera B",
+        type: "standard",
+      },
+      {
+        name: "C",
+        description: "Litera C",
+        type: "standard",
+      },
+    ];
+
+    for (const letterType of defaultLetterTypes) {
+      await prisma.letter.create({
+        data: letterType,
+      });
+    }
+
+    console.log("✅ Domyślne rodzaje liter zostały dodane!");
+  }
 }
 
 main()

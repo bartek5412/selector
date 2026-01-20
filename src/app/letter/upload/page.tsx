@@ -45,7 +45,7 @@ interface ApiResponse {
   pageDimensions: PageDimensions;
 }
 
-export default function PdfViewer() {
+export default function LetterUploadPage() {
   const router = useRouter();
   const [file, setFile] = useState<File | null>(null);
   const [apiData, setApiData] = useState<ApiResponse | null>(null);
@@ -55,15 +55,49 @@ export default function PdfViewer() {
     null
   );
   const [pathLength, setPathLength] = useState<number | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files?.[0]) {
-      setFile(e.target.files[0]);
+  const handleFileChange = (selectedFile: File) => {
+    if (selectedFile && selectedFile.type === "application/pdf") {
+      setFile(selectedFile);
       setApiData(null);
       setSelectedPathIndex(null);
       setPathLength(null);
+      setError(null);
+    } else {
+      setError("Proszę wybrać plik PDF");
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files?.[0]) {
+      handleFileChange(e.target.files[0]);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const droppedFile = e.dataTransfer.files?.[0];
+    if (droppedFile) {
+      handleFileChange(droppedFile);
     }
   };
 
@@ -113,41 +147,11 @@ export default function PdfViewer() {
         throw new Error("Błąd serwera przy obliczaniu długości.");
 
       const result = await response.json();
-      console.log("Odpowiedź z backendu:", result); // Zostaw to do debugowania!
+      console.log("Odpowiedź z backendu:", result);
 
       if (result.closestPathIndex !== -1 && result.length_mm !== null) {
         setSelectedPathIndex(result.closestPathIndex);
         setPathLength(result.length_mm);
-
-        // Wyświetl informacje o ścieżce w konsoli dla debugowania
-        if (result.hasHoles) {
-          console.log(
-            "Ścieżka ma dziury - będzie wymagała specjalnej obsługi w 3D"
-          );
-        }
-        if (!result.isClosed) {
-          console.log(
-            "Ścieżka nie jest domknięta - może być problemem w renderowaniu 3D"
-          );
-        }
-        console.log("Złożoność ścieżki:", result.complexity);
-
-        // Wyświetl informacje o walidacji
-        if (result.validation) {
-          console.log("Walidacja ścieżki:", result.validation);
-          if (result.validation.issues && result.validation.issues.length > 0) {
-            console.warn("Problemy ze ścieżką:", result.validation.issues);
-          }
-          if (
-            result.validation.warnings &&
-            result.validation.warnings.length > 0
-          ) {
-            console.warn(
-              "Ostrzeżenia dla ścieżki:",
-              result.validation.warnings
-            );
-          }
-        }
       } else {
         setSelectedPathIndex(null);
         setPathLength(null);
@@ -189,7 +193,6 @@ export default function PdfViewer() {
     const img = new Image();
     img.src = apiData.pageImage;
     img.onload = () => {
-      // 1. Wyczyść i narysuj obraz tła
       canvas.width = img.width;
       canvas.height = img.height;
       ctx.drawImage(img, 0, 0);
@@ -197,7 +200,6 @@ export default function PdfViewer() {
       const scaleX = canvas.width / apiData.pageDimensions.width;
       const scaleY = canvas.height / apiData.pageDimensions.height;
 
-      // 2. Narysuj wszystkie ścieżki od nowa, uwzględniając zaznaczenie
       apiData.paths.forEach((path, index) => {
         const isSelected = index === selectedPathIndex;
         ctx.strokeStyle = isSelected ? "lime" : "red";
@@ -208,12 +210,10 @@ export default function PdfViewer() {
           ctx.beginPath();
           try {
             if (cmd === "l") {
-              // Linia
               const [p1, p2] = points as Point[];
               ctx.moveTo(p1.x * scaleX, p1.y * scaleY);
               ctx.lineTo(p2.x * scaleX, p2.y * scaleY);
             } else if (cmd === "re") {
-              // Prostokąt
               const [rect] = points as Rect[];
               ctx.rect(
                 rect.x0 * scaleX,
@@ -222,7 +222,6 @@ export default function PdfViewer() {
                 (rect.y1 - rect.y0) * scaleY
               );
             } else if (cmd === "c") {
-              // Krzywa Beziera
               const [p0, p1, p2, p3] = points as Point[];
               ctx.moveTo(p0.x * scaleX, p0.y * scaleY);
               ctx.bezierCurveTo(
@@ -241,7 +240,7 @@ export default function PdfViewer() {
         });
       });
     };
-  }, [apiData, selectedPathIndex]); // Zależności: odśwież rysunek, gdy dane lub zaznaczenie się zmienią
+  }, [apiData, selectedPathIndex]);
 
   return (
     <div className="min-h-screen bg-background pt-16">
@@ -249,26 +248,65 @@ export default function PdfViewer() {
         {/* Header Section */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-foreground mb-2">
-            PDF Path Analyzer
+            Wgraj plik PDF
           </h1>
           <p className="text-muted-foreground text-lg">
-            Wgraj plik PDF i analizuj ścieżki, aby zmierzyć ich długość
+            Przeciągnij i upuść plik PDF lub wybierz z komputera
           </p>
         </div>
 
         {/* File Upload Section */}
         <div className="bg-card rounded-lg border p-6 mb-8 shadow-sm">
           <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Wybierz plik PDF
-              </label>
+            {/* Drag and Drop Area */}
+            <div
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              onClick={() => fileInputRef.current?.click()}
+              className={`
+                relative border-2 border-dashed rounded-lg p-12 text-center cursor-pointer
+                transition-colors duration-200
+                ${
+                  isDragging
+                    ? "border-primary bg-primary/5"
+                    : "border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/50"
+                }
+              `}
+            >
               <input
+                ref={fileInputRef}
                 type="file"
                 accept=".pdf"
-                onChange={handleFileChange}
-                className="block w-full text-sm text-foreground file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer"
+                onChange={handleInputChange}
+                className="hidden"
               />
+              <div className="space-y-4">
+                <div className="mx-auto w-16 h-16 text-muted-foreground/50">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    className="w-full h-full"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-lg font-medium text-foreground">
+                    {file ? file.name : "Przeciągnij i upuść plik PDF tutaj"}
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    lub kliknij, aby wybrać plik z komputera
+                  </p>
+                </div>
+              </div>
             </div>
 
             <button
@@ -446,3 +484,6 @@ export default function PdfViewer() {
     </div>
   );
 }
+
+
+

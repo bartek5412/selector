@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import HeaderCustom from "@/components/ui/headerCustom";
 import FontRegistry from "@/components/FontRegistry";
+import { Providers } from "@/components/providers";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,9 +16,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Frakto Generator - Generator Liter 3D",
+  title: "Selector Generator - Generator Liter 3D",
   description:
-    "Profesjonalny generator liter 3D z zaawansowanymi opcjami personalizacji. Stwórz unikalny design bez znajomości programowania.",
+    "Profesjonalny generator liter 3D z zaawansowanymi opcjami personalizacji.",
 };
 
 export default function RootLayout({
@@ -30,9 +31,11 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <FontRegistry />
-        <HeaderCustom />
-        {children}
+        <Providers>
+          <FontRegistry />
+          <HeaderCustom />
+          {children}
+        </Providers>
       </body>
     </html>
   );
