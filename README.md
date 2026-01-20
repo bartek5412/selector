@@ -53,7 +53,13 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 4. **Build**: Vercel użyje skryptu `vercel-build` z `package.json`, który:
    - Generuje Prisma Client
+   - Uruchamia migracje Prisma (`prisma migrate deploy`)
    - Buduje aplikację Next.js
+
+5. **Migracje bazy danych**: 
+   - Migracje są automatycznie uruchamiane podczas builda na Vercel
+   - Upewnij się, że `DATABASE_URL` w Vercel wskazuje na poprawną bazę danych PostgreSQL
+   - Jeśli baza danych jest pusta, migracje utworzą wszystkie potrzebne tabele
 
 ### Struktura projektu
 
