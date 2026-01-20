@@ -1,35 +1,6 @@
 import React, { useMemo } from "react";
 import * as THREE from "three";
-
-interface PointData {
-  type: "point";
-  x: number;
-  y: number;
-}
-
-interface RectData {
-  type: "rect";
-  x0: number;
-  y0: number;
-  x1: number;
-  y1: number;
-}
-
-type PathPoint = PointData | RectData;
-
-interface PathData {
-  path: {
-    items: Array<[string, ...PathPoint[]]>;
-    hasHoles?: boolean;
-    isClosed?: boolean;
-    complexity?: string;
-    validation?: {
-      valid: boolean;
-      issues: string[];
-      warnings: string[];
-    };
-  };
-}
+import type { PathData, PathPoint } from "@/types/path";
 
 interface PathModelProps {
   pathData: PathData;
@@ -53,9 +24,11 @@ export default function PathModel({
     const scaleY = 0.005;
 
     console.log("PathModel - przetwarzanie ścieżki:", path);
-    console.log("PathModel - liczba elementów ścieżki:", path.items.length);
+    console.log("PathModel - liczba elementów ścieżki:", path.items?.length ?? 0);
 
     // Każdy element ścieżki jako osobna linia
+    if (!path.items) return [];
+    
     path.items.forEach((item) => {
       const [, ...points_data] = item;
       const linePoints: THREE.Vector3[] = [];
@@ -134,14 +107,14 @@ export default function PathModel({
       })}
 
       {/* Wskaźniki problemów */}
-      {pathData.path.hasHoles && (
+      {pathData.path?.hasHoles && (
         <mesh position={[0, 0, 0.1]}>
           <planeGeometry args={[0.1, 0.1]} />
           <meshBasicMaterial color="red" transparent opacity={0.5} />
         </mesh>
       )}
 
-      {pathData.path.validation?.issues &&
+      {pathData.path?.validation?.issues &&
         pathData.path.validation.issues.length > 0 && (
           <mesh position={[0.2, 0, 0.1]}>
             <planeGeometry args={[0.1, 0.1]} />

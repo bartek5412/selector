@@ -1,6 +1,6 @@
 "use client"; // Potrzebujemy interaktywności, więc to musi być komponent kliencki
 
-import { useRef, useState, useEffect, useMemo } from "react";
+import { useRef, useState, useEffect, useMemo, Suspense } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -29,7 +29,7 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import type { PathData, PathPoint } from "@/types/path";
 
-export default function LetterPage() {
+function LetterPageContent() {
   const { data: session, status } = useSession();
   // Hook do pobierania danych z bazy (potrzebny do renderowania opcji w selectach)
   const { data, getOptionsByElementType, loading, error } = useLetters();
@@ -50,11 +50,7 @@ export default function LetterPage() {
   const [pathData, setPathData] = useState<PathData | null>(null);
 
   // Obliczamy długość (używana zarówno do wizualizacji jak i wyceny)
-  const length = pathData
-    ? pathData.length
-    : pathLength
-    ? parseFloat(pathLength)
-    : 0;
+  const length = pathData?.length ?? (pathLength ? parseFloat(pathLength) : 0);
 
   // Stany dla selectów - inicjalizujemy pustymi stringami
   const [frontLetter, setFrontLetter] = useState<string>("");
@@ -342,32 +338,43 @@ export default function LetterPage() {
           if (cmd === "l") {
             // Linia
             const [p1, p2] = points;
-            const x1 = (p1.x + offsetX) * scale;
-            const y1 = (p1.y + offsetY) * scale;
-            const x2 = (p2.x + offsetX) * scale;
-            const y2 = (p2.y + offsetY) * scale;
-            ctx.moveTo(x1, y1);
-            ctx.lineTo(x2, y2);
+            if (p1.type === "point" && p2.type === "point") {
+              const x1 = (p1.x + offsetX) * scale;
+              const y1 = (p1.y + offsetY) * scale;
+              const x2 = (p2.x + offsetX) * scale;
+              const y2 = (p2.y + offsetY) * scale;
+              ctx.moveTo(x1, y1);
+              ctx.lineTo(x2, y2);
+            }
           } else if (cmd === "re") {
             // Prostokąt
             const [rect] = points;
-            const x0 = (rect.x0 + offsetX) * scale;
-            const y0 = (rect.y0 + offsetY) * scale;
-            const width = (rect.x1 - rect.x0) * scale;
-            const height = (rect.y1 - rect.y0) * scale;
-            ctx.rect(x0, y0, width, height);
+            if (rect.type === "rect") {
+              const x0 = (rect.x0 + offsetX) * scale;
+              const y0 = (rect.y0 + offsetY) * scale;
+              const width = (rect.x1 - rect.x0) * scale;
+              const height = (rect.y1 - rect.y0) * scale;
+              ctx.rect(x0, y0, width, height);
+            }
           } else if (cmd === "c") {
             // Krzywa Beziera
             const [p0, p1, p2, p3] = points;
-            ctx.moveTo((p0.x + offsetX) * scale, (p0.y + offsetY) * scale);
-            ctx.bezierCurveTo(
-              (p1.x + offsetX) * scale,
-              (p1.y + offsetY) * scale,
-              (p2.x + offsetX) * scale,
-              (p2.y + offsetY) * scale,
-              (p3.x + offsetX) * scale,
-              (p3.y + offsetY) * scale
-            );
+            if (
+              p0.type === "point" &&
+              p1.type === "point" &&
+              p2.type === "point" &&
+              p3.type === "point"
+            ) {
+              ctx.moveTo((p0.x + offsetX) * scale, (p0.y + offsetY) * scale);
+              ctx.bezierCurveTo(
+                (p1.x + offsetX) * scale,
+                (p1.y + offsetY) * scale,
+                (p2.x + offsetX) * scale,
+                (p2.y + offsetY) * scale,
+                (p3.x + offsetX) * scale,
+                (p3.y + offsetY) * scale
+              );
+            }
           }
           ctx.stroke();
         } catch (e) {
@@ -405,7 +412,7 @@ export default function LetterPage() {
       dimensions: templateValue,
       finalPrice: totalPrice, // Cena wyliczona przez hook
       creationDate: new Date().toLocaleDateString("pl-PL"),
-      pathData: pathData, // Dodajemy dane ścieżki do faktury
+      pathData: pathData ?? undefined, // Dodajemy dane ścieżki do faktury
     }),
     [components, length, letterType, templateValue, totalPrice, pathData]
   );
@@ -824,7 +831,7 @@ export default function LetterPage() {
                         <p>
                           Długość:{" "}
                           <span className="font-medium">
-                            {length.toFixed(0)} mm
+                            {length?.toFixed(0) ?? "0"} mm
                           </span>
                         </p>
                         <p>
@@ -885,5 +892,17 @@ export default function LetterPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function LetterPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen">
+        <div>Ładowanie...</div>
+      </div>
+    }>
+      <LetterPageContent />
+    </Suspense>
   );
 }

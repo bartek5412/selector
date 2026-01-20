@@ -1,31 +1,11 @@
+import type { PathData, PathPoint } from "@/types/path";
+
 const PT_TO_MM = 25.4 / 72.0;
 
 interface BboxResult {
   widthMm: number;
   heightMm: number;
   areaMm2: number;
-}
-
-interface PointData {
-  type: "point";
-  x: number;
-  y: number;
-}
-
-interface RectData {
-  type: "rect";
-  x0: number;
-  y0: number;
-  x1: number;
-  y1: number;
-}
-
-type PathPoint = PointData | RectData;
-
-interface PathData {
-  path?: {
-    items?: Array<[string, ...PathPoint[]]>;
-  };
 }
 
 export function calculateBbox(pathData: PathData | null): BboxResult | null {
@@ -37,7 +17,7 @@ export function calculateBbox(pathData: PathData | null): BboxResult | null {
     maxY = -Infinity;
 
   for (const item of pathData.path.items) {
-    const points = item.slice(1);
+    const points = item.slice(1) as PathPoint[];
     for (const p of points) {
       if (p?.type === "point") {
         if (p.x < minX) minX = p.x;

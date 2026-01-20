@@ -186,7 +186,7 @@ const renderPathPreview = (pathData: PathData | null) => {
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
   
   pathData.path.items.forEach((item) => {
-    const points = item.slice(1);
+    const points = item.slice(1) as PathPoint[];
     points.forEach((p: PathPoint) => {
       if (p?.type === "point") {
         if (p.x < minX) minX = p.x;
