@@ -1,23 +1,25 @@
 import React, { useMemo } from "react";
 import * as THREE from "three";
 
-interface Point {
-  type: string;
+interface PointData {
+  type: "point";
   x: number;
   y: number;
 }
 
-interface Rect {
-  type: string;
+interface RectData {
+  type: "rect";
   x0: number;
   y0: number;
   x1: number;
   y1: number;
 }
 
+type PathPoint = PointData | RectData;
+
 interface PathData {
   path: {
-    items: Array<[string, ...any[]]>;
+    items: Array<[string, ...PathPoint[]]>;
     hasHoles?: boolean;
     isClosed?: boolean;
     complexity?: string;
@@ -38,7 +40,6 @@ interface PathModelProps {
 export default function PathModel({
   pathData,
   color = "#000000",
-  height = 1,
 }: PathModelProps) {
   // Generowanie osobnych linii dla każdego elementu ścieżki
   const pathLines = useMemo(() => {
@@ -55,12 +56,12 @@ export default function PathModel({
     console.log("PathModel - liczba elementów ścieżki:", path.items.length);
 
     // Każdy element ścieżki jako osobna linia
-    path.items.forEach((item, index) => {
-      const [cmd, ...points_data] = item;
+    path.items.forEach((item) => {
+      const [, ...points_data] = item;
       const linePoints: THREE.Vector3[] = [];
 
       // Przetwarzamy wszystkie punkty w elemencie
-      points_data.forEach((point_data: any) => {
+      points_data.forEach((point_data: PathPoint) => {
         if (point_data.type === "point") {
           const point = new THREE.Vector3(
             point_data.x * scaleX,

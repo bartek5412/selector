@@ -1,6 +1,8 @@
 import { auth } from "./auth";
 import { NextResponse } from "next/server";
-import { headers } from "next/headers";
+import type { Session } from "next-auth";
+
+type User = Session["user"];
 
 export async function getCurrentUser() {
   try {
@@ -44,13 +46,13 @@ export async function requirePermission(permission: "canEditParameters" | "canVi
   return user;
 }
 
-export function canViewConfig(user: any, configUserId: string): boolean {
+export function canViewConfig(user: User | null, configUserId: string): boolean {
   if (!user) return false;
   if (user.role === "ADMIN" || user.canViewAllConfigs) return true;
   return user.id === configUserId;
 }
 
-export function canEditConfig(user: any, configUserId: string): boolean {
+export function canEditConfig(user: User | null, configUserId: string): boolean {
   if (!user) return false;
   return user.id === configUserId || user.role === "ADMIN";
 }

@@ -6,9 +6,25 @@ interface BboxResult {
   areaMm2: number;
 }
 
+interface PointData {
+  type: "point";
+  x: number;
+  y: number;
+}
+
+interface RectData {
+  type: "rect";
+  x0: number;
+  y0: number;
+  x1: number;
+  y1: number;
+}
+
+type PathPoint = PointData | RectData;
+
 interface PathData {
   path?: {
-    items?: Array<[string, ...any[]]>;
+    items?: Array<[string, ...PathPoint[]]>;
   };
 }
 
