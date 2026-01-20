@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 
+// Ustawiamy Node.js runtime, ponieważ używamy Prisma
+export const runtime = 'nodejs';
+
 export async function POST(request: Request) {
   try {
     const data = await request.json();

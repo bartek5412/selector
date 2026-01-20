@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { auth } from "@/lib/auth";
+import { hasSessionCookie } from "@/lib/auth-edge";
 
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
@@ -32,31 +32,14 @@ export async function middleware(request: NextRequest) {
   }
 
   // Wszystkie inne ścieżki wymagają logowania
-  // Użyj auth() z NextAuth do weryfikacji sesji
-  try {
-    const session = await auth();
-    
-    if (!session || !session.user) {
-      console.log('❌ No valid session found, redirecting to login');
-      // Przekieruj do logowania
-      if (path.startsWith("/api/")) {
-        return NextResponse.json(
-          { message: "Wymagane zalogowanie" },
-          { status: 401 }
-        );
-      }
-
-      const loginUrl = new URL("/auth/login", request.url);
-      loginUrl.searchParams.set("callbackUrl", path);
-      return NextResponse.redirect(loginUrl);
-    }
-
-    console.log('✅ Valid session found for user:', session.user.email);
-    response.headers.set('x-middleware-authenticated', 'true');
-    return response;
-  } catch (error) {
-    console.error('❌ Error checking session:', error);
-    // W przypadku błędu, przekieruj do logowania
+  // Użyj Edge-compatible auth do weryfikacji sesji (bez Prisma)
+  // Sprawdzamy tylko obecność cookie sesji - pełna weryfikacja w API routes
+  const cookieHeader = request.headers.get("cookie");
+  const hasSession = hasSessionCookie(cookieHeader);
+  
+  if (!hasSession) {
+    console.log('❌ No session cookie found, redirecting to login');
+    // Przekieruj do logowania
     if (path.startsWith("/api/")) {
       return NextResponse.json(
         { message: "Wymagane zalogowanie" },
@@ -68,6 +51,10 @@ export async function middleware(request: NextRequest) {
     loginUrl.searchParams.set("callbackUrl", path);
     return NextResponse.redirect(loginUrl);
   }
+
+  console.log('✅ Session cookie found');
+  response.headers.set('x-middleware-authenticated', 'true');
+  return response;
 }
 
 export const config = {

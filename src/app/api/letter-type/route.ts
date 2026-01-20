@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+// Ustawiamy Node.js runtime, ponieważ używamy Prisma
+export const runtime = 'nodejs';
+
 // Funkcja do pobierania wszystkich rodzajów liter (GET)
 export async function GET() {
   try {

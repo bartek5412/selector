@@ -5,6 +5,9 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma"; // <-- WAŻNY IMPORT! Zamiast @prisma/client
 
+// Ustawiamy Node.js runtime, ponieważ używamy Prisma
+export const runtime = 'nodejs';
+
 // Funkcja do pobierania wszystkich zapisanych ram (GET)
 export async function GET(request: Request) {
   try {

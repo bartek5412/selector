@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 
+// Ustawiamy Node.js runtime, ponieważ używamy Prisma
+export const runtime = 'nodejs';
+
 // Funkcja do aktualizacji ramki (PUT)
 export async function PUT(
   request: Request,

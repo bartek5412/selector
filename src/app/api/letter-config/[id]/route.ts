@@ -3,6 +3,9 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { canViewConfig } from "@/lib/auth-helpers";
 
+// Ustawiamy Node.js runtime, ponieważ używamy Prisma
+export const runtime = 'nodejs';
+
 // GET - Pobierz jedną konfigurację
 export async function GET(
   request: Request,
