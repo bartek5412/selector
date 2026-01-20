@@ -108,7 +108,7 @@ export default function LetterUploadPage() {
     const formData = new FormData();
     formData.append("file", file);
     try {
-      const response = await fetch("http://127.0.0.1:5001/api/process-pdf", {
+      const response = await fetch("/api/process-pdf", {
         method: "POST",
         body: formData,
       });
@@ -135,7 +135,7 @@ export default function LetterUploadPage() {
     const pdfY = canvasY * (apiData.pageDimensions.height / canvas.height);
 
     try {
-      const response = await fetch("http://127.0.0.1:5001/api/get-length", {
+      const response = await fetch("/api/get-length", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
