@@ -24,21 +24,22 @@ function LoginForm() {
     setLoading(true);
 
     try {
+      // Używamy redirect: false, aby móc obsłużyć błędy
       const result = await signIn("credentials", {
         email,
         password,
-        redirect: true,
-        callbackUrl: callbackUrl,
+        redirect: false,
       });
 
-      // Jeśli redirect: true, signIn automatycznie przekieruje
-      // Jeśli wystąpi błąd, zostanie przekierowany z parametrem error
       if (result?.error) {
         setError("Nieprawidłowy email lub hasło");
+        setLoading(false);
+      } else if (result?.ok) {
+        // Przekieruj do callbackUrl po udanym logowaniu
+        window.location.href = callbackUrl;
       }
     } catch {
       setError("Wystąpił błąd podczas logowania");
-    } finally {
       setLoading(false);
     }
   };
