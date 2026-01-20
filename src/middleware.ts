@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { hasSessionCookie } from "@/lib/auth-edge";
+import { hasSessionCookie } from "./lib/auth-edge";
 
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
