@@ -1,11 +1,1 @@
-{
-  "installCommand": "npm install",
-  "functions": {
-    "api/process-pdf.py": {
-      "runtime": "python3.12"
-    },
-    "api/get-length.py": {
-      "runtime": "python3.12"
-    }
-  }
-}
+{  "installCommand": "npm install"}
