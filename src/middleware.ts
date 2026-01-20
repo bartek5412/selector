@@ -96,5 +96,7 @@ export const config = {
     "/letter",
     "/letter/:path*",
   ],
+  // Używamy nodejs runtime, ponieważ withAuth wymaga pełnej funkcjonalności NextAuth
+  // Ale middleware zawsze działa w Edge Runtime, więc może być problem
 };
 
