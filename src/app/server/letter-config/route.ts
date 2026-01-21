@@ -2,14 +2,14 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 
-// Ustawiamy Node.js runtime, ponieważ używamy Prisma
-export const runtime = 'nodejs';
+// Ustawiamy Node.js runtime, poniewa‘• u‘•ywamy Prisma
+export const runtime = "nodejs";
 
 // GET - Pobierz wszystkie konfiguracje
 export async function GET() {
   try {
     const session = await auth();
-    
+
     if (!session?.user) {
       return NextResponse.json(
         { message: "Wymagane zalogowanie" },
@@ -19,7 +19,7 @@ export async function GET() {
 
     const user = session.user;
 
-    // Jeśli użytkownik może widzieć wszystkie konfiguracje lub jest adminem
+    // Je‘>li u‘•ytkownik mo‘•e widzieŽÅ wszystkie konfiguracje lub jest adminem
     const whereClause =
       user.canViewAllConfigs || user.role === "ADMIN"
         ? {}
@@ -34,10 +34,10 @@ export async function GET() {
 
     return NextResponse.json(configurations);
   } catch (error) {
-    console.error("❌ API Error:", error);
+    console.error("ƒœ— API Error:", error);
     return NextResponse.json(
       {
-        message: "Wystąpił błąd serwera",
+        message: "WystŽpi‘' b‘'Žd serwera",
         error:
           process.env.NODE_ENV === "development"
             ? error instanceof Error
@@ -50,11 +50,11 @@ export async function GET() {
   }
 }
 
-// POST - Zapisz nową konfigurację
+// POST - Zapisz nowŽ konfiguracjŽt
 export async function POST(request: Request) {
   try {
     const session = await auth();
-    
+
     if (!session?.user) {
       return NextResponse.json(
         { message: "Wymagane zalogowanie" },
@@ -66,14 +66,23 @@ export async function POST(request: Request) {
 
     const data = await request.json();
 
-    // Sprawdź czy model jest dostępny
+    // Sprawd‘­ czy model jest dostŽtpny
     if (!prisma.letterConfiguration) {
-      console.error("❌ letterConfiguration model is not available in Prisma Client");
-      console.error("Available models:", Object.keys(prisma).filter(key => !key.startsWith('_') && !key.startsWith('$')));
+      console.error(
+        "ƒœ— letterConfiguration model is not available in Prisma Client"
+      );
+      console.error(
+        "Available models:",
+        Object.keys(prisma).filter(
+          (key) => !key.startsWith("_") && !key.startsWith("$")
+        )
+      );
       return NextResponse.json(
         {
-          message: "Model letterConfiguration nie jest dostępny. Zrestartuj serwer deweloperski.",
-          error: "Prisma Client needs to be regenerated. Please restart the dev server.",
+          message:
+            "Model letterConfiguration nie jest dostŽtpny. Zrestartuj serwer deweloperski.",
+          error:
+            "Prisma Client needs to be regenerated. Please restart the dev server.",
         },
         { status: 500 }
       );
@@ -100,10 +109,10 @@ export async function POST(request: Request) {
 
     return NextResponse.json(newConfiguration, { status: 201 });
   } catch (error) {
-    console.error("❌ POST API Error:", error);
+    console.error("ƒœ— POST API Error:", error);
     return NextResponse.json(
       {
-        message: "Wystąpił błąd podczas zapisywania konfiguracji",
+        message: "WystŽpi‘' b‘'Žd podczas zapisywania konfiguracji",
         error:
           process.env.NODE_ENV === "development"
             ? error instanceof Error
@@ -115,4 +124,3 @@ export async function POST(request: Request) {
     );
   }
 }
-

@@ -126,7 +126,7 @@ function LetterPageContent() {
     if (configId && !isInitialized) {
       const loadConfiguration = async () => {
         try {
-          const response = await fetch(`/api/letter-config/${configId}`);
+          const response = await fetch(`/server/letter-config/${configId}`);
           if (!response.ok) {
             throw new Error("Błąd pobierania konfiguracji");
           }
@@ -429,8 +429,8 @@ function LetterPageContent() {
       // Jeśli edytujemy istniejącą konfigurację, użyj PUT
       const isUpdate = currentConfigId !== null;
       const url = isUpdate
-        ? `/api/letter-config/${currentConfigId}`
-        : "/api/letter-config";
+        ? `/server/letter-config/${currentConfigId}`
+        : "/server/letter-config";
       const method = isUpdate ? "PUT" : "POST";
 
       const response = await fetch(url, {

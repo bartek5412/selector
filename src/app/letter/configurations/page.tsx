@@ -55,7 +55,7 @@ export default function ConfigurationsPage() {
 
   const fetchConfigurations = async () => {
     try {
-      const response = await fetch("/api/letter-config");
+      const response = await fetch("/server/letter-config");
       if (!response.ok) throw new Error("Błąd pobierania konfiguracji");
       const data = await response.json();
       setConfigurations(data);
@@ -72,7 +72,7 @@ export default function ConfigurationsPage() {
 
     setDeleting(true);
     try {
-      const response = await fetch(`/api/letter-config/${configToDelete}`, {
+      const response = await fetch(`/server/letter-config/${configToDelete}`, {
         method: "DELETE",
       });
 
@@ -100,7 +100,7 @@ export default function ConfigurationsPage() {
 
     setSaving(true);
     try {
-      const response = await fetch(`/api/letter-config/${configToEdit.id}`, {
+      const response = await fetch(`/server/letter-config/${configToEdit.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

@@ -19,7 +19,7 @@ export function useLetterTypes() {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch("/api/letter-type");
+      const response = await fetch("/server/letter-type");
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);

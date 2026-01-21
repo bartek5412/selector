@@ -29,7 +29,7 @@ export function useLetters() {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch("/api/letter");
+      const response = await fetch("/server/letter");
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -52,7 +52,7 @@ export function useLetters() {
   // Zapisywanie zmian
   const updateLetter = async (id: string, changes: Partial<LetterSettings>) => {
     try {
-      const response = await fetch(`/api/letter/${id}`, {
+      const response = await fetch(`/server/letter/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -79,7 +79,7 @@ export function useLetters() {
   // Usuwanie
   const deleteLetter = async (id: string) => {
     try {
-      const response = await fetch(`/api/letter/${id}`, {
+      const response = await fetch(`/server/letter/${id}`, {
         method: "DELETE",
       });
 
@@ -98,7 +98,7 @@ export function useLetters() {
   // Dodawanie nowego rekordu
   const addLetter = async (letterData: Omit<LetterSettings, "id">) => {
     try {
-      const response = await fetch("/api/letter", {
+      const response = await fetch("/server/letter", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -121,7 +121,7 @@ export function useLetters() {
   };
   const filterLetters = async (elementType: string) => {
     try {
-      const response = await fetch(`/api/letter?elementType=${elementType}`);
+      const response = await fetch(`/server/letter?elementType=${elementType}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }

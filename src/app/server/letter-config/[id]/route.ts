@@ -3,17 +3,17 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { canViewConfig } from "@/lib/auth-helpers";
 
-// Ustawiamy Node.js runtime, ponieważ używamy Prisma
-export const runtime = 'nodejs';
+// Ustawiamy Node.js runtime, poniewa‘• u‘•ywamy Prisma
+export const runtime = "nodejs";
 
-// GET - Pobierz jedną konfigurację
+// GET - Pobierz jednŽ konfiguracjŽt
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
-    
+
     if (!session?.user) {
       return NextResponse.json(
         { message: "Wymagane zalogowanie" },
@@ -31,25 +31,25 @@ export async function GET(
 
     if (!configuration) {
       return NextResponse.json(
-        { message: "Konfiguracja nie została znaleziona" },
+        { message: "Konfiguracja nie zosta‘'a znaleziona" },
         { status: 404 }
       );
     }
 
-    // Sprawdź uprawnienia do wyświetlenia
+    // Sprawd‘­ uprawnienia do wy‘>wietlenia
     if (!canViewConfig(user, configuration.userId)) {
       return NextResponse.json(
-        { message: "Brak uprawnień do wyświetlenia tej konfiguracji" },
+        { message: "Brak uprawnie‘" do wy‘>wietlenia tej konfiguracji" },
         { status: 403 }
       );
     }
 
     return NextResponse.json(configuration);
   } catch (error) {
-    console.error("❌ GET API Error:", error);
+    console.error("ƒœ— GET API Error:", error);
     return NextResponse.json(
       {
-        message: "Wystąpił błąd serwera",
+        message: "WystŽpi‘' b‘'Žd serwera",
         error:
           process.env.NODE_ENV === "development"
             ? error instanceof Error
@@ -62,14 +62,14 @@ export async function GET(
   }
 }
 
-// PUT - Aktualizuj konfigurację
+// PUT - Aktualizuj konfiguracjŽt
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
-    
+
     if (!session?.user) {
       return NextResponse.json(
         { message: "Wymagane zalogowanie" },
@@ -82,22 +82,22 @@ export async function PUT(
     const { id } = await params;
     const data = await request.json();
 
-    // Sprawdź czy konfiguracja istnieje i czy użytkownik ma uprawnienia
+    // Sprawd‘­ czy konfiguracja istnieje i czy u‘•ytkownik ma uprawnienia
     const existingConfig = await prisma.letterConfiguration.findUnique({
       where: { id },
     });
 
     if (!existingConfig) {
       return NextResponse.json(
-        { message: "Konfiguracja nie została znaleziona" },
+        { message: "Konfiguracja nie zosta‘'a znaleziona" },
         { status: 404 }
       );
     }
 
-    // Sprawdź uprawnienia do edycji
+    // Sprawd‘­ uprawnienia do edycji
     if (existingConfig.userId !== user.id && user.role !== "ADMIN") {
       return NextResponse.json(
-        { message: "Brak uprawnień do edycji tej konfiguracji" },
+        { message: "Brak uprawnie‘" do edycji tej konfiguracji" },
         { status: 403 }
       );
     }
@@ -123,10 +123,10 @@ export async function PUT(
 
     return NextResponse.json(updatedConfiguration);
   } catch (error) {
-    console.error("❌ PUT API Error:", error);
+    console.error("ƒœ— PUT API Error:", error);
     return NextResponse.json(
       {
-        message: "Wystąpił błąd podczas aktualizacji konfiguracji",
+        message: "WystŽpi‘' b‘'Žd podczas aktualizacji konfiguracji",
         error:
           process.env.NODE_ENV === "development"
             ? error instanceof Error
@@ -139,14 +139,14 @@ export async function PUT(
   }
 }
 
-// DELETE - Usuń konfigurację
+// DELETE - Usu‘" konfiguracjŽt
 export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
-    
+
     if (!session?.user) {
       return NextResponse.json(
         { message: "Wymagane zalogowanie" },
@@ -158,22 +158,22 @@ export async function DELETE(
 
     const { id } = await params;
 
-    // Sprawdź czy konfiguracja istnieje i czy użytkownik ma uprawnienia
+    // Sprawd‘­ czy konfiguracja istnieje i czy u‘•ytkownik ma uprawnienia
     const existingConfig = await prisma.letterConfiguration.findUnique({
       where: { id },
     });
 
     if (!existingConfig) {
       return NextResponse.json(
-        { message: "Konfiguracja nie została znaleziona" },
+        { message: "Konfiguracja nie zosta‘'a znaleziona" },
         { status: 404 }
       );
     }
 
-    // Sprawdź uprawnienia do usunięcia
+    // Sprawd‘­ uprawnienia do usuniŽtcia
     if (existingConfig.userId !== user.id && user.role !== "ADMIN") {
       return NextResponse.json(
-        { message: "Brak uprawnień do usunięcia tej konfiguracji" },
+        { message: "Brak uprawnie‘" do usuniŽtcia tej konfiguracji" },
         { status: 403 }
       );
     }
@@ -182,12 +182,12 @@ export async function DELETE(
       where: { id },
     });
 
-    return NextResponse.json({ message: "Konfiguracja została usunięta" });
+    return NextResponse.json({ message: "Konfiguracja zosta‘'a usuniŽtta" });
   } catch (error) {
-    console.error("❌ DELETE API Error:", error);
+    console.error("ƒœ— DELETE API Error:", error);
     return NextResponse.json(
       {
-        message: "Wystąpił błąd podczas usuwania konfiguracji",
+        message: "WystŽpi‘' b‘'Žd podczas usuwania konfiguracji",
         error:
           process.env.NODE_ENV === "development"
             ? error instanceof Error
@@ -199,4 +199,3 @@ export async function DELETE(
     );
   }
 }
-

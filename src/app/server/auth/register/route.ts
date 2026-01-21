@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 
-// Ustawiamy Node.js runtime, ponieważ używamy Prisma
-export const runtime = 'nodejs';
+// Ustawiamy Node.js runtime, poniewa‘• u‘•ywamy Prisma
+export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   try {
@@ -12,27 +12,27 @@ export async function POST(request: Request) {
 
     if (!email || !password) {
       return NextResponse.json(
-        { message: "Email i hasło są wymagane" },
+        { message: "Email i has‘'o sŽ wymagane" },
         { status: 400 }
       );
     }
 
-    // Sprawdź czy użytkownik już istnieje
+    // Sprawd‘­ czy u‘•ytkownik ju‘• istnieje
     const existingUser = await prisma.user.findUnique({
       where: { email },
     });
 
     if (existingUser) {
       return NextResponse.json(
-        { message: "Użytkownik o tym emailu już istnieje" },
+        { message: "U‘•ytkownik o tym emailu ju‘• istnieje" },
         { status: 400 }
       );
     }
 
-    // Hash hasła
+    // Hash has‘'a
     const passwordHash = await bcrypt.hash(password, 10);
 
-    // Utwórz użytkownika
+    // UtwÆˆrz u‘•ytkownika
     const user = await prisma.user.create({
       data: {
         email,
@@ -52,14 +52,14 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json(
-      { message: "Użytkownik został utworzony", user },
+      { message: "U‘•ytkownik zosta‘' utworzony", user },
       { status: 201 }
     );
   } catch (error) {
-    console.error("❌ Registration Error:", error);
+    console.error("ƒœ— Registration Error:", error);
     return NextResponse.json(
       {
-        message: "Wystąpił błąd podczas rejestracji",
+        message: "WystŽpi‘' b‘'Žd podczas rejestracji",
         error:
           process.env.NODE_ENV === "development"
             ? error instanceof Error
@@ -71,5 +71,3 @@ export async function POST(request: Request) {
     );
   }
 }
-
-

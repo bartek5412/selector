@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 
-// Ustawiamy Node.js runtime, ponieważ używamy Prisma
-export const runtime = 'nodejs';
+// Ustawiamy Node.js runtime, poniewa‘• u‘•ywamy Prisma
+export const runtime = "nodejs";
 
 // Funkcja do aktualizacji ramki (PUT)
 export async function PUT(
@@ -11,9 +11,9 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    // Sprawdź uprawnienia do edycji parametrów
+    // Sprawd‘­ uprawnienia do edycji parametrÆˆw
     const session = await auth();
-    
+
     if (!session?.user) {
       return NextResponse.json(
         { message: "Wymagane zalogowanie" },
@@ -25,7 +25,7 @@ export async function PUT(
 
     if (!user.canEditParameters && user.role !== "ADMIN") {
       return NextResponse.json(
-        { message: "Brak uprawnień do edycji parametrów" },
+        { message: "Brak uprawnie‘" do edycji parametrÆˆw" },
         { status: 403 }
       );
     }
@@ -48,9 +48,9 @@ export async function PUT(
 
     return NextResponse.json(updatedFrame);
   } catch (error) {
-    console.error("Błąd aktualizacji:", error);
+    console.error("B‘'Žd aktualizacji:", error);
     return NextResponse.json(
-      { message: "Wystąpił błąd podczas aktualizacji ramki" },
+      { message: "WystŽpi‘' b‘'Žd podczas aktualizacji ramki" },
       { status: 500 }
     );
   }
@@ -62,9 +62,9 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    // Sprawdź uprawnienia do edycji parametrów
+    // Sprawd‘­ uprawnienia do edycji parametrÆˆw
     const session = await auth();
-    
+
     if (!session?.user) {
       return NextResponse.json(
         { message: "Wymagane zalogowanie" },
@@ -76,7 +76,7 @@ export async function DELETE(
 
     if (!user.canEditParameters && user.role !== "ADMIN") {
       return NextResponse.json(
-        { message: "Brak uprawnień do edycji parametrów" },
+        { message: "Brak uprawnie‘" do edycji parametrÆˆw" },
         { status: 403 }
       );
     }
@@ -87,11 +87,11 @@ export async function DELETE(
       where: { id },
     });
 
-    return NextResponse.json({ message: "Ramka została usunięta" });
+    return NextResponse.json({ message: "Ramka zosta‘'a usuniŽtta" });
   } catch (error) {
-    console.error("Błąd usuwania:", error);
+    console.error("B‘'Žd usuwania:", error);
     return NextResponse.json(
-      { message: "Wystąpił błąd podczas usuwania ramki" },
+      { message: "WystŽpi‘' b‘'Žd podczas usuwania ramki" },
       { status: 500 }
     );
   }

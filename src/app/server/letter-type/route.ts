@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-// Ustawiamy Node.js runtime, ponieważ używamy Prisma
-export const runtime = 'nodejs';
+// Ustawiamy Node.js runtime, poniewa‘• u‘•ywamy Prisma
+export const runtime = "nodejs";
 
-// Funkcja do pobierania wszystkich rodzajów liter (GET)
+// Funkcja do pobierania wszystkich rodzajÆˆw liter (GET)
 export async function GET() {
   try {
     const letters = await prisma.letter.findMany({
@@ -15,15 +15,15 @@ export async function GET() {
 
     return NextResponse.json(letters);
   } catch (error) {
-    console.error("❌ API Error:", error);
-    console.error("❌ Error details:", {
+    console.error("ƒœ— API Error:", error);
+    console.error("ƒœ— Error details:", {
       message: error instanceof Error ? error.message : "Unknown error",
       stack: error instanceof Error ? error.stack : undefined,
       name: error instanceof Error ? error.name : undefined,
     });
     return NextResponse.json(
       {
-        message: "Wystąpił błąd serwera",
+        message: "WystŽpi‘' b‘'Žd serwera",
         error:
           process.env.NODE_ENV === "development"
             ? error instanceof Error
@@ -51,10 +51,10 @@ export async function POST(request: Request) {
 
     return NextResponse.json(newLetter, { status: 201 });
   } catch (error) {
-    console.error("❌ POST API Error:", error);
+    console.error("ƒœ— POST API Error:", error);
     return NextResponse.json(
       {
-        message: "Wystąpił błąd podczas zapisywania",
+        message: "WystŽpi‘' b‘'Žd podczas zapisywania",
         error:
           process.env.NODE_ENV === "development"
             ? error instanceof Error
@@ -66,4 +66,3 @@ export async function POST(request: Request) {
     );
   }
 }
-

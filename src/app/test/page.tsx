@@ -33,7 +33,7 @@ export default function TestPage() {
     const pobierzRamki = async () => {
       try {
         // 1. Wysyłamy zapytanie na adres naszego API
-        const odpowiedz = await fetch("/api/letter");
+        const odpowiedz = await fetch("/server/letter");
 
         // 2. Sprawdzamy, czy serwer nie zwrócił błędu (np. 404, 500)
         if (!odpowiedz.ok) {
@@ -59,7 +59,7 @@ export default function TestPage() {
     setZapisywanie(true);
 
     try {
-      const odpowiedz = await fetch("/api/letter", {
+      const odpowiedz = await fetch("/server/letter", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -144,7 +144,7 @@ export default function TestPage() {
     setZapisywanie(true);
 
     try {
-      const odpowiedz = await fetch(`/api/letter/${id}`, {
+      const odpowiedz = await fetch(`/server/letter/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -183,7 +183,7 @@ export default function TestPage() {
     setZapisywanie(true);
 
     try {
-      const odpowiedz = await fetch(`/api/letter/${id}`, {
+      const odpowiedz = await fetch(`/server/letter/${id}`, {
         method: "DELETE",
       });
 
