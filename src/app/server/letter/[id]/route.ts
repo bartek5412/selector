@@ -25,7 +25,7 @@ export async function PUT(
 
     if (!user.canEditParameters && user.role !== "ADMIN") {
       return NextResponse.json(
-        { message: "Brak uprawnie‘" do edycji parametrÆˆw" },
+        { message: "Brak uprawnien do edycji parametrow" },
         { status: 403 }
       );
     }
@@ -76,7 +76,7 @@ export async function DELETE(
 
     if (!user.canEditParameters && user.role !== "ADMIN") {
       return NextResponse.json(
-        { message: "Brak uprawnie‘" do edycji parametrÆˆw" },
+        { message: "Brak uprawnien do edycji parametrow" },
         { status: 403 }
       );
     }

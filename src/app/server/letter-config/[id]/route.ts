@@ -39,7 +39,7 @@ export async function GET(
     // Sprawd‘­ uprawnienia do wy‘>wietlenia
     if (!canViewConfig(user, configuration.userId)) {
       return NextResponse.json(
-        { message: "Brak uprawnie‘" do wy‘>wietlenia tej konfiguracji" },
+        { message: "Brak uprawnien do wyswietlenia tej konfiguracji" },
         { status: 403 }
       );
     }
@@ -97,7 +97,7 @@ export async function PUT(
     // Sprawd‘­ uprawnienia do edycji
     if (existingConfig.userId !== user.id && user.role !== "ADMIN") {
       return NextResponse.json(
-        { message: "Brak uprawnie‘" do edycji tej konfiguracji" },
+        { message: "Brak uprawnien do edycji tej konfiguracji" },
         { status: 403 }
       );
     }
@@ -173,7 +173,7 @@ export async function DELETE(
     // Sprawd‘­ uprawnienia do usuniŽtcia
     if (existingConfig.userId !== user.id && user.role !== "ADMIN") {
       return NextResponse.json(
-        { message: "Brak uprawnie‘" do usuniŽtcia tej konfiguracji" },
+        { message: "Brak uprawnien do usuniecia tej konfiguracji" },
         { status: 403 }
       );
     }

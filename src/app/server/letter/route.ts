@@ -60,7 +60,7 @@ export async function POST(request: Request) {
 
     if (!user.canEditParameters && user.role !== "ADMIN") {
       return NextResponse.json(
-        { message: "Brak uprawnie‘" do edycji parametrÆˆw" },
+        { message: "Brak uprawnien do edycji parametrow" },
         { status: 403 }
       );
     }
