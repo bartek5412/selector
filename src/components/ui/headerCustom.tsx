@@ -14,9 +14,9 @@ export default function HeaderCustom() {
     { href: "/", label: "Strona główna" },
     { href: "/letter/upload", label: "Litery" },
     { href: "/letterSettings", label: "Parametry konfiguracyjne" },
-    { href: "/letterConfiguration", label: "Konfiguracje liter" },
-   //  { href: "/pylons", label: "Pylony" },
-   //  { href: "/smartFrame", label: "Smart Frame" },
+    { href: "/letter/configurations", label: "Konfiguracje liter" },
+    //  { href: "/pylons", label: "Pylony" },
+    //  { href: "/smartFrame", label: "Smart Frame" },
     //  { href: "/test-frame", label: "Test 3D" },
   ];
 
@@ -40,7 +40,7 @@ export default function HeaderCustom() {
                   "transition-colors hover:text-[#059669]",
                   pathname === item.href
                     ? "text-[#059669] font-semibold"
-                    : "text-[#111827]/70"
+                    : "text-[#111827]/70",
                 )}
               >
                 {item.label}
