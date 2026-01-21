@@ -877,7 +877,7 @@ function LetterPageContent() {
               </Card>
             </>
           ) : (
-            <div className="text-center text-gray-500">
+            <div className="text-center mt-20 text-gray-500">
               <p className="text-lg">Brak danych ścieżki</p>
               <p className="text-sm mt-2">
                 Wgraj plik PDF, aby zobaczyć podgląd ścieżki

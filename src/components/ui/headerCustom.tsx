@@ -14,6 +14,7 @@ export default function HeaderCustom() {
     { href: "/", label: "Strona główna" },
     { href: "/letter/upload", label: "Litery" },
     { href: "/letterSettings", label: "Parametry konfiguracyjne" },
+    { href: "/letterConfiguration", label: "Konfiguracje liter" },
    //  { href: "/pylons", label: "Pylony" },
    //  { href: "/smartFrame", label: "Smart Frame" },
     //  { href: "/test-frame", label: "Test 3D" },
