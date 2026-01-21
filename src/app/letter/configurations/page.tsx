@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -38,7 +38,7 @@ interface LetterConfiguration {
 
 export const dynamic = "force-dynamic";
 
-export default function ConfigurationsPage() {
+function ConfigurationsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const incomingPathSession = searchParams.get("pathSession");
@@ -333,5 +333,19 @@ export default function ConfigurationsPage() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+export default function ConfigurationsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      }
+    >
+      <ConfigurationsPageContent />
+    </Suspense>
   );
 }
