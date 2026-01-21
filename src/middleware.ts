@@ -34,6 +34,7 @@ export async function middleware(request: NextRequest) {
 
   // ZAWSZE dodaj nagłówek, żeby sprawdzić czy middleware działa
   const response = NextResponse.next();
+  return response;
   response.headers.set('x-middleware-executed', 'true');
   response.headers.set('x-middleware-path', path);
 
