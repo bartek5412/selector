@@ -37,70 +37,64 @@ export async function middleware(request: NextRequest) {
 
   // ZAWSZE dodaj nagłówek, żeby sprawdzić czy middleware działa
   const response = NextResponse.next();
+
+  response.headers.set("x-middleware-executed", "true");
+  response.headers.set("x-middleware-path", path);
+
+  // Publiczne routy - dostępne bez logowania
+  const publicRoutes = ["/auth", "/api/auth"];
+
+  // Sprawdź czy to publiczna ścieżka
+  const isPublicRoute = publicRoutes.some((route) => path.startsWith(route));
+
+  // Strona główna jest publiczna (tylko dokładnie "/")
+  const isHomePage = path === "/";
+
+  // Jeśli to publiczna ścieżka lub strona główna, pozwól przejść
+  if (isPublicRoute || isHomePage) {
+    response.headers.set("x-middleware-public", "true");
+    return response;
+  }
+
+  // Wszystkie inne ścieżki wymagają logowania
+  // Użyj Edge-compatible auth do weryfikacji sesji (bez Prisma)
+  // Sprawdzamy tylko obecność cookie sesji - pełna weryfikacja w API routes
+  const cookieHeader = request.headers.get("cookie");
+
+  // Debug: loguj dostępne cookie (tylko nazwy, nie wartości)
+  if (cookieHeader) {
+    const cookieNames = cookieHeader
+      .split(";")
+      .map((c) => c.trim().split("=")[0]);
+    console.log("🍪 Available cookies:", cookieNames.join(", "));
+  } else {
+    console.log("🍪 No cookies found");
+  }
+
+  const hasSession = hasSessionCookie(cookieHeader);
+
+  if (!hasSession) {
+    console.log("❌ No session cookie found, redirecting to login");
+    // Przekieruj do logowania
+    if (path.startsWith("/api/")) {
+      return NextResponse.json(
+        { message: "Wymagane zalogowanie" },
+        { status: 401 },
+      );
+    }
+
+    const loginUrl = new URL("/auth/login", request.url);
+    loginUrl.searchParams.set("callbackUrl", path);
+    return NextResponse.redirect(loginUrl);
+  }
+
+  console.log("✅ Session cookie found");
+  response.headers.set("x-middleware-authenticated", "true");
   return response;
 }
-//   response.headers.set('x-middleware-executed', 'true');
-//   response.headers.set('x-middleware-path', path);
 
-//   // Publiczne routy - dostępne bez logowania
-//   const publicRoutes = [
-//     "/auth",
-//     "/api/auth",
-//   ];
-
-//   // Sprawdź czy to publiczna ścieżka
-//   const isPublicRoute = publicRoutes.some((route) => path.startsWith(route));
-
-//   // Strona główna jest publiczna (tylko dokładnie "/")
-//   const isHomePage = path === "/";
-
-//   // Jeśli to publiczna ścieżka lub strona główna, pozwól przejść
-//   if (isPublicRoute || isHomePage) {
-//     response.headers.set('x-middleware-public', 'true');
-//     return response;
-//   }
-
-//   // Wszystkie inne ścieżki wymagają logowania
-//   // Użyj Edge-compatible auth do weryfikacji sesji (bez Prisma)
-//   // Sprawdzamy tylko obecność cookie sesji - pełna weryfikacja w API routes
-//   const cookieHeader = request.headers.get("cookie");
-
-//   // Debug: loguj dostępne cookie (tylko nazwy, nie wartości)
-//   if (cookieHeader) {
-//     const cookieNames = cookieHeader.split(";").map(c => c.trim().split("=")[0]);
-//     console.log('🍪 Available cookies:', cookieNames.join(", "));
-//   } else {
-//     console.log('🍪 No cookies found');
-//   }
-
-//   const hasSession = hasSessionCookie(cookieHeader);
-
-//   if (!hasSession) {
-//     console.log('❌ No session cookie found, redirecting to login');
-//     // Przekieruj do logowania
-//     if (path.startsWith("/api/")) {
-//       return NextResponse.json(
-//         { message: "Wymagane zalogowanie" },
-//         { status: 401 }
-//       );
-//     }
-
-//     const loginUrl = new URL("/auth/login", request.url);
-//     loginUrl.searchParams.set("callbackUrl", path);
-//     return NextResponse.redirect(loginUrl);
-//   }
-
-//   console.log('✅ Session cookie found');
-//   response.headers.set('x-middleware-authenticated', 'true');
-//   return response;
-// }
-
-// export const config = {
-//   matcher: [
-//     "/letterSettings",
-//     "/letter",
-//     "/letter/:path*",
-//   ],
-//   // Używamy nodejs runtime, ponieważ withAuth wymaga pełnej funkcjonalności NextAuth
-//   // Ale middleware zawsze działa w Edge Runtime, więc może być problem
-// };
+export const config = {
+  matcher: ["/letterSettings", "/letter", "/letter/:path*"],
+  // Używamy nodejs runtime, ponieważ withAuth wymaga pełnej funkcjonalności NextAuth
+  // Ale middleware zawsze działa w Edge Runtime, więc może być problem
+};
