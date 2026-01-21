@@ -85,6 +85,7 @@ def calculate_path_length(path_data):
 
 
 @app.route("/", methods=["POST"])
+@app.route("/api/get-length", methods=["POST"])
 def get_length():
     """
     Przyjmuje dane o ścieżkach i współrzędne kliknięcia.

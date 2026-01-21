@@ -17,6 +17,7 @@ IMAGE_DPI = 150
 
 
 @app.route("/", methods=["POST"])
+@app.route("/api/process-pdf", methods=["POST"])
 def process_pdf():
     """
     Przyjmuje plik PDF, zwraca obraz pierwszej strony (Base64)
