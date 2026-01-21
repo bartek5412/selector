@@ -582,7 +582,15 @@ function LetterPageContent() {
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
-              <Link href="/letter/configurations">
+              <Link
+                href={
+                  pathSessionKey
+                    ? `/letter/configurations?pathSession=${encodeURIComponent(
+                        pathSessionKey
+                      )}`
+                    : "/letter/configurations"
+                }
+              >
                 <Button variant="outline" className="flex-1">
                   <List className="mr-2 h-4 w-4" />
                   Lista konfiguracji

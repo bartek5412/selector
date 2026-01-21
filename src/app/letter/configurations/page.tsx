@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -38,6 +38,11 @@ interface LetterConfiguration {
 
 export default function ConfigurationsPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const incomingPathSession = searchParams.get("pathSession");
+  const backHref = incomingPathSession
+    ? `/letter?pathSession=${encodeURIComponent(incomingPathSession)}`
+    : "/letter/upload";
   const [configurations, setConfigurations] = useState<LetterConfiguration[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -138,6 +143,8 @@ export default function ConfigurationsPage() {
     const params = new URLSearchParams();
     if (config.pathData != null) {
       params.set("pathSession", sessionKey);
+    } else if (incomingPathSession) {
+      params.set("pathSession", incomingPathSession);
     }
     params.set("configId", config.id);
     
@@ -171,7 +178,7 @@ export default function ConfigurationsPage() {
             Zarządzaj zapisanymi konfiguracjami liter
           </p>
         </div>
-        <Link href="/letter">
+        <Link href={backHref}>
           <Button variant="outline">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Powrót do edycji
@@ -186,7 +193,7 @@ export default function ConfigurationsPage() {
               Brak zapisanych konfiguracji. Utwórz nową konfigurację na stronie
               edycji.
             </p>
-            <Link href="/letter">
+            <Link href={backHref}>
               <Button className="mt-4">Przejdź do edycji</Button>
             </Link>
           </CardContent>
@@ -326,4 +333,3 @@ export default function ConfigurationsPage() {
     </div>
   );
 }
-
